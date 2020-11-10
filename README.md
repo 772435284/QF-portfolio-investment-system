@@ -25,6 +25,7 @@ Quantum Finance-based Hybrid Deep Reinforcement Learning Portfolio Investment Sy
 ```
 ## Requirement
 + Python 3.7
++ Jupyter notebook
 + Pytorch
 + numpy
 + pandas
