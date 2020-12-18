@@ -1,5 +1,7 @@
 # QF-portfolio-investment-system
-Quantum Finance-based Hybrid Deep Reinforcement Learning Portfolio Investment System
+Quantum Finance-based 
+Hybrid Deep Reinforcement Learning 
+Portfolio Investment System
 
 ## Gudience
 + DDPG.ipynb: Run this notebook to train and test DDPG-based portfolio investment system
