@@ -21,7 +21,7 @@ from environment.portfolio import Portfolio
 
 eps = 1e-8
 
-def sharpe(returns, freq=30, rfr=0):
+def sharpe(returns, freq=252, rfr=0):
     # The function that is used to caculate sharpe ratio
     return (np.sqrt(freq) * np.mean(returns - rfr + eps)) / np.std(returns - rfr + eps)
 
