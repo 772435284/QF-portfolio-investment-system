@@ -4,8 +4,6 @@ Contains a set of utility function to process data
 
 from __future__ import print_function
 
-import csv
-import datetime
 import numpy as np
 import pandas as pd
 

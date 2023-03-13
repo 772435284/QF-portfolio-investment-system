@@ -8,12 +8,10 @@ import torch.cuda as cuda
 from torch.autograd import Variable
 import pandas as pd
 import numpy as np
-from environment.QF_env import envs
 from tools.ddpg.replay_buffer import ReplayBuffer
 from api_types import GlobalConfig, AgentProps
-from tools.ddpg.ornstein_uhlenbeck import OrnsteinUhlenbeckActionNoise
-from typing import Callable, List, cast, OrderedDict, Union, Any
-from os.path import join as path_join, exists as path_exists
+from typing import Callable, List, cast, OrderedDict
+from os.path import join as path_join
 from torch.distributions import Categorical
 from utils.qf_data import normalize
 from tensorboardX import SummaryWriter
@@ -157,7 +155,7 @@ class Policy(nn.Module):
         return fc3_out
 
 
-class DDPG(object):
+class QFPIS(object):
     
     config: GlobalConfig
     actor_noise: Callable
