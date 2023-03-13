@@ -23,6 +23,7 @@ class GlobalConfig(DictLikeObject):
 	pga_model_dir: str
 	agent_list: List[AgentProps]
 	use_agents: Union[List[int], int]
+	market_feature:List[str]
 
 	# TODO: DELETE ME
 	model_name: None

@@ -67,8 +67,7 @@ class envs(gym.Env):
     def step(self, action):
 
         # Normalize the action
-        action = np.clip(action, 0, 1)
-        weights = action
+        weights = np.clip(action, 0, 1)
         weights /= (weights.sum() + eps)
         weights[0] += np.clip(1 - weights.sum(), 0, 1)
 
