@@ -1,5 +1,4 @@
 import os
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,23 +12,9 @@ from api_types import GlobalConfig, AgentProps
 from typing import Callable, List, cast, OrderedDict
 from os.path import join as path_join
 from torch.distributions import Categorical
-from utils.qf_data import normalize
+from utils.utils import hidden_init, obs_normalizer
 from tensorboardX import SummaryWriter
 
-def hidden_init(layer):
-    # Initialize the parameter of hidden layer
-    fan_in = layer.weight.data.size()[0]
-    lim = 1. / math.sqrt(fan_in)
-    return (-lim, lim)
-
-def obs_normalizer(observation):
-    # Normalize the observation into close/open ratio
-    if isinstance(observation, tuple):
-        observation = observation[0]
-    
-    observation = observation[:, :, 3:4] / observation[:, :, 0:1]
-    observation = normalize(observation)
-    return observation
 
 # Define actor network
 class Actor(nn.Module):
