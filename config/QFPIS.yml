@@ -1,8 +1,9 @@
 # 通用参数
+model_name: 'QFPIS'
 mode: 'Train'
 use_cuda: True
-ddpg_model_dir: 'models'
-pga_model_dir: 'models_pga'
+ddpg_model_dir: 'breakpoint/QFPIS'
+pga_model_dir: 'breakpoint/QFPIS_pga'
 market_feature:
 - 'Open'
 - 'High'
@@ -61,11 +62,14 @@ buffer_size: 100000
 batch_size: 64
 tau: 0.001
 gamma: 0.99
-actor_learning_rate: 0.00001
-critic_learning_rate: 0.00001
-policy_learning_rate: 0.00001
+actor_learning_rate: 0.0001
+critic_learning_rate: 0.001
+policy_learning_rate: 0.0001
 train_end_date: '2020-11-30'
 train_intermediate_dir: 'train_intermediate'
+is_summary : True
+summary_path: 'train_summary'
+verbose: 0
 
 # 回测核心参数
 gm_strategy_id: 'e896158a-c4e0-11eb-b4fa-d481d7a7eca1'

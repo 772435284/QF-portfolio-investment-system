@@ -23,7 +23,7 @@ class GlobalConfig(DictLikeObject):
 	market_feature:List[str]
 
 	# TODO: DELETE ME
-	model_name: None
+	model_name: str
 	product_list: None
 
 	# 模型训练参数
@@ -40,6 +40,10 @@ class GlobalConfig(DictLikeObject):
 	policy_learning_rate: float
 	train_end_date: str
 	train_intermediate_dir: str
+	is_summary: bool
+	summary_path: str
+	verbose: int
+
 
 	# 回测核心参数
 	gm_strategy_id: str

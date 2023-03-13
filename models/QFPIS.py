@@ -144,7 +144,7 @@ class QFPIS(object):
     
     config: GlobalConfig
     actor_noise: Callable
-    summary_path: str = path_join('train_results', 'ddpg')
+    summary_path: str
     current_agent: AgentProps
     price_history: pd.DataFrame
     trading_dates: List[str]
@@ -152,13 +152,14 @@ class QFPIS(object):
     use_cuda: bool
 
 
-    def __init__(self, env, window_size: int, actor_noise: Callable, config: GlobalConfig):
+    def __init__(self, env, window_size: int, actor_noise: Callable, device: str, config: GlobalConfig):
         
         # Load configuration
         self.config = config
         assert self.config is not None, "Can't load config"
 
         assert type(config.use_agents) == int, "You must specify one agent for training!"
+        
         agent_index = cast(int, config.use_agents)
         self.current_agent = AgentProps(config.agent_list[agent_index])
         product_num = len(self.current_agent.product_list)
@@ -166,27 +167,22 @@ class QFPIS(object):
         self.window_size = window_size
         self.actor_noise = actor_noise
         self.env = env
+        self.device = device
         # self.price_history = price_history
         # self.trading_dates = trading_dates
         # assert len(trading_dates) == config.max_step+self.window_size
         
-        # self.summary_path ='results/ddpg/'
-        if self.use_cuda:
-            self.actor = Actor(product_num,window_size).cuda()
-            self.actor_target = Actor(product_num,window_size).cuda()
-            self.critic = Critic(product_num,window_size).cuda()
-            self.critic_target = Critic(product_num,window_size).cuda()
-        else:
-            self.actor = Actor(product_num,window_size)
-            self.actor_target = Actor(product_num,window_size)
-            self.critic = Critic(product_num,window_size)
-            self.critic_target = Critic(product_num,window_size)
+        self.summary_path = path_join(config.summary_path, config.model_name)
+        
+        self.actor = Actor(product_num,window_size).to(self.device)
+        self.actor_target = Actor(product_num,window_size).to(self.device)
+        self.critic = Critic(product_num,window_size).to(self.device)
+        self.critic_target = Critic(product_num,window_size).to(self.device)
+        
 
         # Here is the code for the policy-gradeint
-        if self.use_cuda:
-            self.policy = Policy(product_num, window_size, 2).cuda()
-        else:
-            self.policy = Policy(product_num, window_size, 2).cuda()
+        
+        self.policy = Policy(product_num, window_size, 2).to(self.device)
         self.policy_optim = optim.Adam(self.policy.parameters(), lr=1e-4)
         
         self.actor.reset_parameters()
@@ -206,20 +202,15 @@ class QFPIS(object):
         os.makedirs(self.summary_path, exist_ok=True)
 
 
+
     def act(self, state):
-        if self.use_cuda:
-            state = torch.tensor(state, dtype=torch.float).unsqueeze(0).cuda()
-        else:
-            state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
+        state = torch.tensor(state, dtype=torch.float).unsqueeze(0).to(self.device)
         action = self.actor(state).squeeze(0).cpu().detach().numpy()+ self.actor_noise()
         return action
     
     def critic_learn(self, state, action, predicted_q_value):
         actual_q = self.critic(state, action)
-        if self.use_cuda:
-            target_Q = torch.tensor(predicted_q_value, dtype=torch.float).cuda()
-        else:
-            target_Q = torch.tensor(predicted_q_value, dtype=torch.float)
+        target_Q = torch.tensor(predicted_q_value, dtype=torch.float).to(self.device)
         target_Q = target_Q.reshape(-1, 1)
         target_Q=Variable(target_Q,requires_grad=True)
         td_error  = F.mse_loss(actual_q, target_Q)
@@ -241,10 +232,7 @@ class QFPIS(object):
     
     # Here is the code for the policy gradient actor
     def select_action(self, state):
-        if self.use_cuda:
-            state = torch.tensor(state, dtype=torch.float).unsqueeze(0).cuda()
-        else:
-            state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
+        state = torch.tensor(state, dtype=torch.float).unsqueeze(0).to(self.device)
         # Get the probability distribution
         #print(state)
         probs = self.policy(state)
@@ -265,10 +253,7 @@ class QFPIS(object):
             R = r + 0.95 * R # R: culumative rewards for t to T
             returns.insert(0, R) # Evaluate the R and keep original order
 
-        if self.use_cuda:
-            returns = torch.tensor(returns).cuda()
-        else:
-            returns = torch.tensor(returns)
+        returns = torch.tensor(returns).to(self.device)
         # Normalized returns
         returns = (returns - returns.mean()) / (returns.std() + eps)
 
@@ -298,7 +283,7 @@ class QFPIS(object):
         moving_average_reward = 0
         writer = SummaryWriter(self.summary_path)
         # Main training loop
-        for i in range(100):
+        for i in range(num_episode):
             previous_observation = self.env.reset()
             # Normalization
             previous_observation = obs_normalizer(previous_observation)
@@ -343,20 +328,12 @@ class QFPIS(object):
         			# ==========================================
                     s_batch, a_batch, r_batch, t_batch, s2_batch = self.buffer.sample_batch(batch_size)
                     # Convert to torch tensor
-                    if self.use_cuda:
-                        s_batch = torch.tensor(s_batch, dtype=torch.float).cuda()
-                        a_batch = torch.tensor(a_batch, dtype=torch.float).cuda()
-                        r_batch = torch.tensor(r_batch, dtype=torch.float).cuda()#.view(batch_size,-1)
-                        t_batch = torch.tensor(t_batch, dtype=torch.float).cuda()
-                        s2_batch = torch.tensor(s2_batch, dtype=torch.float).cuda()
-                        target_q = self.critic_target(s2_batch,self.actor_target(s2_batch)).cpu().detach()
-                    else:
-                        s_batch = torch.tensor(s_batch, dtype=torch.float)
-                        a_batch = torch.tensor(a_batch, dtype=torch.float)
-                        r_batch = torch.tensor(r_batch, dtype=torch.float)
-                        t_batch = torch.tensor(t_batch, dtype=torch.float)
-                        s2_batch = torch.tensor(s2_batch, dtype=torch.float)
-                        target_q = self.critic_target(s2_batch,self.actor_target(s2_batch)).detach()
+                    s_batch = torch.tensor(s_batch, dtype=torch.float).to(self.device)
+                    a_batch = torch.tensor(a_batch, dtype=torch.float).to(self.device)
+                    r_batch = torch.tensor(r_batch, dtype=torch.float).to(self.device)
+                    t_batch = torch.tensor(t_batch, dtype=torch.float).to(self.device)
+                    s2_batch = torch.tensor(s2_batch, dtype=torch.float).to(self.device)
+                    target_q = self.critic_target(s2_batch,self.actor_target(s2_batch)).cpu().detach()
                     y_i = []
                     for k in range(batch_size):
                         if t_batch[k]:
