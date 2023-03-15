@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import datetime
 
+
 eps = 1e-8
 date_format = '%Y-%m-%d'
 start_date = '2014-03-21'
@@ -43,36 +44,30 @@ class DataProcessor(object):
 
     # Load data from the .csv files
     def load_observations(self):
-        ts_d = pd.read_csv('Data/'+'D_'+'AUDUSD'+'.csv')
-        ts_d_len = len(ts_d)
-        csv_data = np.zeros((ts_d_len-self.window_size+1,self.feature_num, len(self.product_list),self.window_size ), dtype=float)
-        
-        for k in range(len(self.product_list)):
-            product = self.product_list[k]
-            #print(product)
-            ts_d = pd.read_csv('Data/'+'D_'+product+'.csv')
-            ts_d = ts_d.dropna(axis=0,how='any')
-            for j in range(len(self.market_feature)):
-                ts_d_temp = ts_d[self.market_feature[j]].values
-                for i in range(len(ts_d)-self.window_size+1):
-                    temp = np.zeros((self.window_size))
-                    for t in range(i, i+self.window_size):
+        # 使用列表推导式读取所有产品的数据
+        data_list = [pd.read_csv(f'Data/D_{product}.csv', engine='pyarrow')[self.market_feature].dropna() for product in self.product_list]
 
-                    #temp = np.zeros((para_num))
-                        temp[t-i] = ts_d_temp[t]
-                    #print(temp)
-                    csv_data[i][j][k] = temp
-        csv_data = csv_data[::-1].copy()
-        observations = csv_data
+        # 获取数据的shape并初始化一个空的数组来存储合并后的数据
+        data_shape = data_list[0].shape
+        combined_data = np.zeros((data_shape[0], data_shape[1], len(self.product_list)))
+
+        # 将读取到的数据添加到合并后的数组中
+        for idx, data in enumerate(data_list):
+            combined_data[:, :, idx] = data.values
+
+        combined_data = combined_data[::-1].copy()
+        observations = combined_data
+
+
         if self.mode == "Train":
             self._data = observations[0:int(self.train_ratio * observations.shape[0])]
             print("Shape for Train observations -- T: ", self._data.shape)
-            #print(self._data)
         elif self.mode == "Test":
             self._data = observations[int(self.train_ratio * observations.shape[0]):]
             print("Shape for Test observations -- T: ", self._data.shape)
         self._data = np.squeeze(self._data)
         self._data = self._data.transpose(2, 0, 1)
+        
 
     def _step(self):
 

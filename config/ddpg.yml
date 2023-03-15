@@ -71,7 +71,7 @@ date_format: '%Y-%m-%d'
 train_intermediate_dir: 'train_intermediate'
 is_summary : True
 summary_path: 'train_summary'
-data_set: 'custom'
+dataset: 'custom'
 verbose: 0
 
 # 回测核心参数

@@ -73,6 +73,7 @@ val_ratio: 0.1
 train_intermediate_dir: 'train_intermediate'
 is_summary : True
 summary_path: 'train_summary'
+dataset: 'custom'
 verbose: 0
 
 # 回测核心参数

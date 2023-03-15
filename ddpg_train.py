@@ -33,6 +33,6 @@ random.seed(seed)
 torch.backends.cudnn.deterministic = True
 
 # Start training
-env = envs(product_list,market_feature,feature_num,steps,window_size,mode)
+env = envs(config)
 model = DDPG(env=env,window_size=window_size,actor_noise=actor_noise,device=device,config=config)
 model.train()

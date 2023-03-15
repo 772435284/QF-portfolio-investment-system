@@ -16,8 +16,10 @@ import datetime
 import gym
 import gym.spaces
 #from environment.data import DataProcessor, date_to_index, index_to_date
-
+from data_provider.data_factory import data_provider
+from api_types import GlobalConfig, AgentProps
 from environment.portfolio import Portfolio
+from environment.data import DataProcessor, date_to_index, index_to_date
 
 
 eps = 1e-8
@@ -37,32 +39,17 @@ def max_drawdown(return_list):
 # A class for portfolio enviroment
 class envs(gym.Env):
     def __init__(self,
-                 product_list,
-                 market_feature,
-                 feature_num,
-                 steps,
-                 window_length,
-                 mode,
-                 start_index=0,
-                 start_date=None):
+                 config:GlobalConfig):
 
-        self.window_length = window_length
-        self.start_index = start_index
-        self.mode = mode
-        self.dataprocessor = DataProcessor(
-            product_list=product_list,
-            market_feature=market_feature,
-            feature_num=feature_num,
-            steps=steps,
-            window_length=window_length,
-            mode=mode,
-            start_index=start_index,
-            start_date=start_date)
-        if mode == "Train":
+        self.window_length = config.window_size
+        self.start_index = 0
+        self.mode = config.mode
+        self.dataprocessor = data_provider(config)
+        if self.mode == "Train":
             trading_cost = 0.0000
-        elif mode == "Test":
+        elif self.mode == "Test":
             trading_cost = 0.0025
-        self.portfolio = Portfolio(steps=steps,trading_cost=trading_cost, mode=mode)
+        self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode)
         
         
     def step(self, action):
@@ -72,14 +59,12 @@ class envs(gym.Env):
         weights /= (weights.sum() + eps)
         weights[0] += np.clip(1 - weights.sum(), 0, 1)
 
-        observation, done1, next_obs, = self.dataprocessor._step()
+        observation, done1 = self.dataprocessor._step()
 
         # Connect 1, no risk asset to the portfolio
         c_observation = np.ones((1, self.window_length, observation.shape[2]))
         observation = np.concatenate((c_observation, observation), axis=0)
 
-        c_next_obs = np.ones((1, 1, next_obs.shape[2]))
-        next_obs = np.concatenate((c_next_obs, next_obs), axis=0)
 
         # Obtain the price vector
         close_price_vector = observation[:, -1, 3]
@@ -89,7 +74,7 @@ class envs(gym.Env):
         y1 = observation[:, 0, 3] / observation[:, -1, 3]
 
         reward, info, done2 = self.portfolio._step(weights, y1, reset)
-        info['date'] = index_to_date(self.start_index + self.dataprocessor.idx + self.dataprocessor.step)
+        info['date'] = index_to_date(self.start_index + self.dataprocessor.idx + self.dataprocessor.index)
         self.infos.append(info)
 
         return observation, reward, done1 or done2, info
@@ -97,11 +82,10 @@ class envs(gym.Env):
     def reset(self):
         self.infos = []
         self.portfolio.reset()
-        observation, next_obs = self.dataprocessor.reset()
+        observation = self.dataprocessor.reset()
         c_observation = np.ones((1, self.window_length, observation.shape[2]))
         observation = np.concatenate((c_observation, observation), axis=0)
-        c_next_obs = np.ones((1, 1, next_obs.shape[2]))
-        next_obs = np.concatenate((c_next_obs, next_obs), axis=0)
+        
         info = {}
         return observation, info
 

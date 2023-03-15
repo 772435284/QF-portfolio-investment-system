@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
 import warnings
 from api_types import GlobalConfig, AgentProps
-from data_loader import Dataset_Custom
+from data_provider.data_loader  import Dataset_Custom
 
 # Select 
 data_dict = {
@@ -26,7 +26,7 @@ def data_provider(config: GlobalConfig):
     elif config.mode == 'Backtest':
         pass
 
-    data_loader = Data(product_list=config.product_list,
+    data_loader = Data(product_list=AgentProps(config.agent_list[config.use_agents]).product_list,
                        market_feature=config.market_feature,
                        feature_num=len(config.market_feature),
                        steps=config.max_step,
