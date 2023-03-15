@@ -38,11 +38,16 @@ class GlobalConfig(DictLikeObject):
 	actor_learning_rate: float
 	critic_learning_rate: float
 	policy_learning_rate: float
+	train_start_date: str
 	train_end_date: str
+	train_ratio: float
+	val_ratio: float
+	date_format: str
 	train_intermediate_dir: str
 	is_summary: bool
 	summary_path: str
 	verbose: int
+	dataset: str
 
 
 	# 回测核心参数
@@ -61,4 +66,5 @@ class GlobalConfig(DictLikeObject):
 	random_seed: int
 	use_dropout: Union[str, bool]
 	dropout_rate: float
+
 	

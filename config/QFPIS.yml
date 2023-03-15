@@ -65,7 +65,11 @@ gamma: 0.99
 actor_learning_rate: 0.0001
 critic_learning_rate: 0.001
 policy_learning_rate: 0.0001
-train_end_date: '2020-11-30'
+train_start_date: '2014-03-21'
+train_end_date: '2020-10-14'
+date_format: '%Y-%m-%d'
+train_ratio: 0.8
+val_ratio: 0.1
 train_intermediate_dir: 'train_intermediate'
 is_summary : True
 summary_path: 'train_summary'

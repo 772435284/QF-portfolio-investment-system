@@ -15,7 +15,8 @@ import matplotlib as plt
 import datetime
 import gym
 import gym.spaces
-from environment.data import DataProcessor, date_to_index, index_to_date
+#from environment.data import DataProcessor, date_to_index, index_to_date
+
 from environment.portfolio import Portfolio
 
 

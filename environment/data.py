@@ -12,7 +12,7 @@ end_date = '2020-10-14'
 start_datetime = datetime.datetime.strptime(start_date, date_format)
 end_datetime = datetime.datetime.strptime(end_date, date_format)
 
-def date_to_index(date_string):
+def date_to_index(date_string,start_datetime):
     # Transfer the date to index 0, 1, 2 ,3...
     return (datetime.datetime.strptime(date_string, date_format) - start_datetime).days
 
@@ -67,6 +67,7 @@ class DataProcessor(object):
         if self.mode == "Train":
             self._data = observations[0:int(self.train_ratio * observations.shape[0])]
             print("Shape for Train observations -- T: ", self._data.shape)
+            #print(self._data)
         elif self.mode == "Test":
             self._data = observations[int(self.train_ratio * observations.shape[0]):]
             print("Shape for Test observations -- T: ", self._data.shape)
