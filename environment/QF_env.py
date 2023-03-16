@@ -59,7 +59,7 @@ class envs(gym.Env):
         weights /= (weights.sum() + eps)
         weights[0] += np.clip(1 - weights.sum(), 0, 1)
 
-        observation, done1 = self.dataprocessor._step()
+        observation, done1, = self.dataprocessor._step()
 
         # Connect 1, no risk asset to the portfolio
         c_observation = np.ones((1, self.window_length, observation.shape[2]))
@@ -71,7 +71,7 @@ class envs(gym.Env):
         open_price_vector = observation[:, -1, 0]
 
         reset = 0
-        y1 = observation[:, 0, 3] / observation[:, -1, 3]
+        y1 = observation[:, 0, 3] / observation[:, 0, 0]
 
         reward, info, done2 = self.portfolio._step(weights, y1, reset)
         info['date'] = index_to_date(self.start_index + self.dataprocessor.idx + self.dataprocessor.index)
