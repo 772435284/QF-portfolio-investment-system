@@ -81,7 +81,16 @@ class Dataset_Custom(object):
             file_path = f'Data/D_{symbol}.csv'
             if os.path.exists(file_path):
                 stock_data = pd.read_csv(file_path)
-                #stock_data = stock_data[::-1]
+                
+                # Combine the 'Year', 'Month', and 'Day' columns to form a single 'Date' column and convert it to datetime format
+                stock_data['Date'] = pd.to_datetime(stock_data[['Year', 'Month', 'Day']])
+
+                # Drop the 'Year', 'Month', and 'Day' columns
+                stock_data = stock_data.drop(columns=['Year', 'Month', 'Day'])
+
+                # Sort the DataFrame based on the 'Date' column in ascending order
+                stock_data = stock_data.sort_values(by='Date')
+                
                 # 提取收盘价数据
                 close_prices = stock_data['Close'].tolist()
                 

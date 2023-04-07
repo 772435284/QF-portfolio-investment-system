@@ -69,18 +69,16 @@ class envs(gym.Env):
         open_price_vector = observation[:, 0, 0]
         high_price_vector = observation[:, 0, 1]
         low_price_vector = observation[:, 0 , 2]
-        close_price_vector = observation[:, -1, 3]
+        close_price_vector = observation[:, 0, 3]
         # Price relative vector
-        pr = observation[:, 0, 3] / observation[:, -1, 3]
+        pr = close_price_vector / open_price_vector
         
         
         #print(self.combined_nqpr[:,self.qpl_level-1].shape)
-        new_qpl = open_price_vector * self.combined_nqpr[:,self.qpl_level-1]
+        QPL1_vector = open_price_vector * self.combined_nqpr[:,self.qpl_level-1]
         
-        QPL1_vector = observation[:, 0, 4]
+        #QPL1_vector = observation[:, 0, 4]
         
-        
-
         
         reset = 0
         y1 = np.zeros((10,), dtype=float)
