@@ -19,6 +19,7 @@ from api_types import GlobalConfig, AgentProps
 from data_provider.data_factory import data_provider
 from environment.data import DataProcessor, date_to_index, index_to_date
 from environment.portfolio import Portfolio
+from utils.evals import sharpe, max_drawdown
 
 eps = 1e-8
 
@@ -52,15 +53,21 @@ class envs(gym.Env):
         c_observation = np.ones((1, self.window_length, observation.shape[2]))
         observation = np.concatenate((c_observation, observation), axis=0)
 
-
+        
         # Obtain the price vector
-        close_price_vector = observation[:, 0, 3]
         open_price_vector = observation[:, 0, 0]
+        high_price_vector = observation[:, 0, 1]
+        low_price_vector = observation[:, 0 , 2]
+        close_price_vector = observation[:, 0, 3]
 
         reset = 0
         y1 = close_price_vector / open_price_vector
 
-        # TODO: calculate the QPL in real time 
+        # observation shape (10*3*6)
+        # NQPR SHAPE (10*20)
+        # TODO: calculate the QPL in real time
+         
+
 
 
         reward, info, done2 = self.portfolio._step(weights, y1, reset)

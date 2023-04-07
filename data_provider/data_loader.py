@@ -7,6 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
 import warnings
 import datetime
+from utils.qpl import get_nqpr
 
 eps = 1e-8
 
@@ -30,6 +31,7 @@ class Dataset_Custom(object):
         self.mode = mode
         self.train_ratio = train_ratio
         self.val_ratio = val_ratio
+        self.get_nqpr()
         self.load_observations()
     
     def load_observations(self):
@@ -70,6 +72,43 @@ class Dataset_Custom(object):
 
         return obs, done
 
+    def get_nqpr(self):
+        # 初始化一个空的DataFrame，用于存储合并后的股票nqpr数据
+        combined_nqpr = pd.DataFrame()
+
+        for symbol in self.product_list:
+            # 读取每个股票的OHLC数据
+            file_path = f'Data/D_{symbol}.csv'
+            if os.path.exists(file_path):
+                stock_data = pd.read_csv(file_path)
+
+                # 提取收盘价数据
+                close_prices = stock_data['Close'].tolist()
+
+                # 使用get_nqpr函数计算nqpr
+                nqpr = get_nqpr(close_prices)
+
+                # 将nqpr转换为DataFrame，并重命名行索引，以便在最后的DataFrame中识别不同股票的nqpr
+                nqpr_df = pd.DataFrame(nqpr[:-1]).T.rename(index={0: symbol})
+
+                # 将nqpr数据添加到合并后的DataFrame中
+                combined_nqpr = pd.concat([combined_nqpr, nqpr_df])
+            else:
+                print(f"File {file_path} does not exist.")
+
+        # 创建一个名为Fiat_Currency的Series，数值全部为1
+        # 创建一个名为Fiat_Currency的DataFrame，数值全部为1
+        fiat_currency = pd.DataFrame([[1.0] * 20], columns=combined_nqpr.columns, index=['Fiat_Currency'])
+
+        # 将Fiat_Currency这一行添加到combined_nqpr的最前面
+        combined_nqpr = pd.concat([fiat_currency, combined_nqpr])
+        combined_nqpr = combined_nqpr.to_numpy()
+        print(combined_nqpr.shape)
+        return combined_nqpr
+        
+        
+
+        
 
     def reset(self):
         self.index = 0
