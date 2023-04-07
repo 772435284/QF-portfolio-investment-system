@@ -72,7 +72,7 @@ class envs(gym.Env):
 
         reset = 0
         y1 = np.zeros((10,), dtype=float)
-        
+        action_size = 3
         y1[0] = close_price_vector[0]/open_price_vector[0]
         for i in range(1, len(open_price_vector)):
             for j in range(len(combine_qpl)):
@@ -82,12 +82,13 @@ class envs(gym.Env):
                     y1[i] = pr[i]
                 # Select action 1: choose QPL+1
                 # for the + QPL in range
-                if combine_qpl[j][i] < high_price_vector[i] and combine_qpl[j][i]>low_price_vector[i] and combine_qpl[j][i]!=0 and action_policy==1:
-                    y1[i] = combine_qpl[j][i]/close_price_vector[i]
-                    reset = 1
-                # for the +QPL not in range
-                if combine_qpl[j][i] > high_price_vector[i] and action_policy==1:
-                    y1[i] = pr[i]
+                for k in range(1,action_size):
+                    if combine_qpl[j][i] < high_price_vector[i] and combine_qpl[j][i]>low_price_vector[i] and combine_qpl[j][i]!=0 and action_policy==k:
+                        y1[i] = combine_qpl[j][i]/close_price_vector[i]
+                        reset = 1
+                    # for the +QPL not in range
+                    if combine_qpl[j][i] > high_price_vector[i] and action_policy==k:
+                        y1[i] = pr[i]
             
            
         open_price_vector = observation[:, -1, 0]

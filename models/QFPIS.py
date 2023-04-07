@@ -168,7 +168,6 @@ class QFPIS(object):
         self.actor_noise = actor_noise
         self.env = env
         self.device = device
-        self.action_size = config.qpl_level + 1 
         # self.price_history = price_history
         # self.trading_dates = trading_dates
         # assert len(trading_dates) == config.max_step+self.window_size
@@ -183,7 +182,7 @@ class QFPIS(object):
 
         # Here is the code for the policy-gradeint
         
-        self.policy = Policy(product_num, window_size, self.action_size).to(self.device)
+        self.policy = Policy(product_num, window_size, 2).to(self.device)
         self.policy_optim = optim.Adam(self.policy.parameters(), lr=1e-4)
         
         self.actor.reset_parameters()
