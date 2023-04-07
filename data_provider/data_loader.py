@@ -68,7 +68,10 @@ class Dataset_Custom(object):
 
         obs = self.data[:, self.index:self.index + self.window_length,:].copy()
 
-        done = self.index >= self.steps
+        done = self.index >= self.steps or self.index + self.window_length >= self._data.shape[1]
+        
+
+        
 
         return obs, done
 

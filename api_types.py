@@ -51,6 +51,8 @@ class GlobalConfig(DictLikeObject):
 	verbose: int
 	dataset: str
 
+	# 模拟回测参数
+	wealth: float
 
 	# 回测核心参数
 	gm_strategy_id: str

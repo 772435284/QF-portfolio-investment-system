@@ -1,6 +1,6 @@
 # 通用参数
 model_name: 'QFPIS'
-mode: 'Train'
+mode: 'Test'
 use_cuda: True
 ddpg_model_dir: 'breakpoint/QFPIS'
 pga_model_dir: 'breakpoint/QFPIS_pga'
@@ -71,12 +71,15 @@ train_start_date: '2014-03-21'
 train_end_date: '2020-10-14'
 date_format: '%Y-%m-%d'
 train_ratio: 0.8
-val_ratio: 0.1
+val_ratio: 0.0
 train_intermediate_dir: 'train_intermediate'
 is_summary : True
 summary_path: 'train_summary'
 dataset: 'custom'
 verbose: 0
+
+# 模拟回测参数
+wealth: 10000
 
 # 回测核心参数
 gm_strategy_id: 'e896158a-c4e0-11eb-b4fa-d481d7a7eca1'

@@ -51,6 +51,7 @@ class envs(gym.Env):
 
         # Connect 1, no risk asset to the portfolio
         c_observation = np.ones((1, self.window_length, observation.shape[2]))
+        
         observation = np.concatenate((c_observation, observation), axis=0)
 
         # Obtain the price vector
