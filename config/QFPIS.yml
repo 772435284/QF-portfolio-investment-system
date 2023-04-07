@@ -12,7 +12,7 @@ market_feature:
 - 'QPL1'
 - 'QPL-1'
 agent_list:
-  - name: 'agent1_3'
+  - name: 'QFPIS_QPL_1'
     product_list:
       - 'AUDCAD'
       - 'AUDUSD'

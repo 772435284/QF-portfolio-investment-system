@@ -22,6 +22,8 @@ from environment.portfolio import Portfolio
 from environment.data import DataProcessor, date_to_index, index_to_date
 from utils.evals import sharpe, max_drawdown
 
+eps = 1e-8
+
 # A class for portfolio enviroment
 class envs(gym.Env):
     def __init__(self,
