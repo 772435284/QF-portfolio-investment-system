@@ -28,6 +28,8 @@ class GlobalConfig(DictLikeObject):
 
 	# 模型训练参数
 	gm_train_strategy_id: str
+	use_qpl: bool
+	qpl_level: int
 	window_size: int
 	episode: int
 	max_step: int

@@ -19,9 +19,20 @@ from api_types import GlobalConfig, AgentProps
 from data_provider.data_factory import data_provider
 from environment.data import DataProcessor, date_to_index, index_to_date
 from environment.portfolio import Portfolio
-from utils.evals import sharpe, max_drawdown
 
 eps = 1e-8
+
+def sharpe(returns, freq=252, rfr=0):
+    # The function that is used to caculate sharpe ratio
+    return (np.sqrt(freq) * np.mean(returns - rfr + eps)) / np.std(returns - rfr + eps)
+
+def max_drawdown(return_list):
+    # The function that is used to calculate the max drawndom
+    i = np.argmax((np.maximum.accumulate(return_list) - return_list) / np.maximum.accumulate(return_list))  # 结束位置
+    if i == 0:
+        return 0
+    j = np.argmax(return_list[:i]) 
+    return (return_list[j] - return_list[i]) / (return_list[j])
 
 # A class for portfolio enviroment
 class envs(gym.Env):
@@ -37,44 +48,94 @@ class envs(gym.Env):
         elif self.mode == "Test":
             trading_cost = 0.0025
         self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode)
-
-    def step(self, action):
+        self.combined_nqpr = self.dataprocessor.get_nqpr()
+        self.qpl_level = config.qpl_level
+        
+    def step(self, action,action_policy):
 
         # Normalize the action
-        weights = np.clip(action, 0, 1)
+        action = np.clip(action, 0, 1)
+        weights = action
         weights /= (weights.sum() + eps)
         weights[0] += np.clip(1 - weights.sum(), 0, 1)
 
-
-
-        observation, done1, = self.dataprocessor._step()
+        observation, done1 = self.dataprocessor._step()
 
         # Connect 1, no risk asset to the portfolio
         c_observation = np.ones((1, self.window_length, observation.shape[2]))
         observation = np.concatenate((c_observation, observation), axis=0)
 
         
-        # Obtain the price vector
         open_price_vector = observation[:, 0, 0]
         high_price_vector = observation[:, 0, 1]
         low_price_vector = observation[:, 0 , 2]
-        close_price_vector = observation[:, 0, 3]
+        close_price_vector = observation[:, -1, 3]
+        # Price relative vector
+        pr = observation[:, 0, 3] / observation[:, -1, 3]
+        
+        
+        #print(self.combined_nqpr[:,self.qpl_level-1].shape)
+        new_qpl = open_price_vector * self.combined_nqpr[:,self.qpl_level-1]
+        
+        QPL1_vector = observation[:, 0, 4]
+        
+        
 
+        
         reset = 0
-        y1 = close_price_vector / open_price_vector
-
-        # observation shape (10*3*6)
-        # NQPR SHAPE (10*20)
-        # TODO: calculate the QPL in real time
-         
-
-
+        y1 = np.zeros((10,), dtype=float)
+        
+        y1[0] = close_price_vector[0]/open_price_vector[0]
+        for i in range(1, len(open_price_vector)):
+            # Select action 0
+            # Buy and hold
+            if action_policy == 0:
+                y1[i] = pr[i]
+            # Select action 1: choose QPL+1
+            # for the + QPL in range
+            if QPL1_vector[i] < high_price_vector[i] and QPL1_vector[i]>low_price_vector[i] and QPL1_vector[i]!=0 and action_policy==1:
+                y1[i] = QPL1_vector[i]/close_price_vector[i]
+                reset = 1
+            # for the +QPL not in range
+            if QPL1_vector[i] > high_price_vector[i] and action_policy==1:
+                y1[i] = pr[i]
+            
+           
+        open_price_vector = observation[:, -1, 0]
+        high_price_vector = observation[:, -1, 1]
+        low_price_vector = observation[:, -1 , 2]
+        close_price_vector = observation[:, -1, 3]
+        
+        QPL1_vector = observation[:, -1, 4]
+        QPLn1_vector = observation[:, -1, 5]
+        
+        c1 = close_price_vector / open_price_vector
+        
+        policy_reward = np.zeros((10,1), dtype=float)
+        for i in range(len(open_price_vector)):
+            
+            if action_policy == 0:
+                policy_reward[i] = close_price_vector[i]-open_price_vector[i]
+            
+            # Select action 1: choose QPL+1
+            # for the + QPL in range
+            if QPL1_vector[i] < high_price_vector[i] and QPL1_vector[i]>low_price_vector[i] and QPL1_vector[i]!=0 and action_policy==1:
+                policy_reward[i] = QPL1_vector[i]-open_price_vector[i]
+            # for the +QPL not in range
+            if QPL1_vector[i] > high_price_vector[i] and action_policy==1:
+                policy_reward[i] = close_price_vector[i]-open_price_vector[i]
+            
+        
+        policy_reward = np.dot(weights, policy_reward)
+        
+        policy_reward = np.sum(policy_reward)
+        
 
         reward, info, done2 = self.portfolio._step(weights, y1, reset)
         info['date'] = index_to_date(self.start_index + self.dataprocessor.idx + self.dataprocessor.index)
         self.infos.append(info)
 
-        return observation, reward, done1 or done2, info
+        return observation, reward, policy_reward, done1 or done2, info
 
     def reset(self):
         self.infos = []
@@ -82,7 +143,6 @@ class envs(gym.Env):
         observation = self.dataprocessor.reset()
         c_observation = np.ones((1, self.window_length, observation.shape[2]))
         observation = np.concatenate((c_observation, observation), axis=0)
-        
         info = {}
         return observation, info
 

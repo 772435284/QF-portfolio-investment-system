@@ -4,7 +4,7 @@ import torch
 import random
 import yaml
 from api_types import GlobalConfig, AgentProps
-from environment.QF_env_1 import envs
+from environment.new_env import envs
 from tools.ddpg.ornstein_uhlenbeck import OrnsteinUhlenbeckActionNoise
 from models.QFPIS import QFPIS
 

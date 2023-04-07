@@ -81,10 +81,10 @@ class Dataset_Custom(object):
             file_path = f'Data/D_{symbol}.csv'
             if os.path.exists(file_path):
                 stock_data = pd.read_csv(file_path)
-
+                #stock_data = stock_data[::-1]
                 # 提取收盘价数据
                 close_prices = stock_data['Close'].tolist()
-
+                
                 # 使用get_nqpr函数计算nqpr
                 nqpr = get_nqpr(close_prices)
 
@@ -102,8 +102,9 @@ class Dataset_Custom(object):
 
         # 将Fiat_Currency这一行添加到combined_nqpr的最前面
         combined_nqpr = pd.concat([fiat_currency, combined_nqpr])
+
         combined_nqpr = combined_nqpr.to_numpy()
-        print(combined_nqpr.shape)
+        
         return combined_nqpr
         
         

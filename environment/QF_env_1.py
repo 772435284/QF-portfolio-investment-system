@@ -66,7 +66,6 @@ class envs(gym.Env):
 
         
         open_price_vector = observation[:, 0, 0]
-        print(open_price_vector)
         high_price_vector = observation[:, 0, 1]
         low_price_vector = observation[:, 0 , 2]
         close_price_vector = observation[:, -1, 3]

@@ -85,9 +85,9 @@ class envs(gym.Env):
         open_price_vector = observation[:, 0, 0]
         high_price_vector = observation[:, 0, 1]
         low_price_vector = observation[:, 0 , 2]
-        close_price_vector = observation[:, -1, 3]
+        close_price_vector = observation[:, 0, 3]
         # Price relative vector
-        pr = observation[:, 0, 3] / observation[:, -1, 3]
+        pr = observation[:, 0, 3] / observation[:, 0, 0]
         
         QPL1_vector = observation[:, 0, 4]
         QPLn1_vector = observation[:, 0, 5]
