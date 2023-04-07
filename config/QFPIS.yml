@@ -56,7 +56,7 @@ use_agents: 0
 # 模型训练参数
 gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
 use_qpl: True
-qpl_level: 1
+qpl_level: 2
 window_size: 3
 episode: 100
 max_step: 1000
