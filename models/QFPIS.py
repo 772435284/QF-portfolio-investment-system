@@ -286,7 +286,7 @@ class QFPIS(object):
         for i in range(num_episode):
             previous_observation = self.env.reset()
             # Normalization
-            previous_observation = obs_normalizer(previous_observation)
+            previous_observation,_ = obs_normalizer(previous_observation)
             
             previous_observation = previous_observation.transpose(2, 0, 1)
             ep_reward = 0
