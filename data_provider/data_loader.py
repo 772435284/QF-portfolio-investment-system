@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
 import warnings
 import datetime
-from utils.qpl import get_nqpr
+from factor.qpl import get_nqpr
 
 eps = 1e-8
 
