@@ -40,7 +40,7 @@ def hidden_init(layer):
     return (-lim, lim)
 
 # 正则化函数
-def obs_normalizer(observation):
+def factor_creator(observation):
     # Normalize the observation into close/open ratio
     if isinstance(observation, tuple):
         observation = observation[0]

@@ -20,6 +20,7 @@ class GlobalConfig(DictLikeObject):
 	pga_model_dir: str
 	agent_list: List[AgentProps]
 	use_agents: Union[List[int], int]
+	factor: List[str]
 	market_feature:List[str]
 
 	# TODO: DELETE ME
@@ -50,6 +51,8 @@ class GlobalConfig(DictLikeObject):
 	summary_path: str
 	verbose: int
 	dataset: str
+	norm_method: str
+	norm_type: str
 
 	# 模拟回测参数
 	wealth: float

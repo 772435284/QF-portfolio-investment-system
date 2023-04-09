@@ -39,6 +39,7 @@ class envs(gym.Env):
         self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode)
         self.combined_nqpr = self.dataprocessor.get_nqpr()
         self.qpl_level = config.qpl_level
+        self.action_size = config.qpl_level + 1
         
     def step(self, action,action_policy):
 
@@ -72,7 +73,7 @@ class envs(gym.Env):
 
         reset = 0
         y1 = np.zeros((10,), dtype=float)
-        action_size = 3
+        
         y1[0] = close_price_vector[0]/open_price_vector[0]
         for i in range(1, len(open_price_vector)):
             for j in range(len(combine_qpl)):
@@ -82,7 +83,7 @@ class envs(gym.Env):
                     y1[i] = pr[i]
                 # Select action 1: choose QPL+1
                 # for the + QPL in range
-                for k in range(1,action_size):
+                for k in range(1,self.action_size):
                     if combine_qpl[j][i] < high_price_vector[i] and combine_qpl[j][i]>low_price_vector[i] and combine_qpl[j][i]!=0 and action_policy==k:
                         y1[i] = combine_qpl[j][i]/close_price_vector[i]
                         reset = 1
@@ -105,11 +106,12 @@ class envs(gym.Env):
             
             # Select action 1: choose QPL+1
             # for the + QPL in range
-            if combine_qpl[j][i] < high_price_vector[i] and combine_qpl[j][i]>low_price_vector[i] and combine_qpl[j][i]!=0 and action_policy==1:
-                policy_reward[i] = combine_qpl[j][i]-open_price_vector[i]
-            # for the +QPL not in range
-            if combine_qpl[j][i] > high_price_vector[i] and action_policy==1:
-                policy_reward[i] = close_price_vector[i]-open_price_vector[i]
+            for k in range(1,self.action_size):
+                if combine_qpl[j][i] < high_price_vector[i] and combine_qpl[j][i]>low_price_vector[i] and combine_qpl[j][i]!=0 and action_policy==k:
+                    policy_reward[i] = combine_qpl[j][i]-open_price_vector[i]
+                # for the +QPL not in range
+                if combine_qpl[j][i] > high_price_vector[i] and action_policy==1:
+                    policy_reward[i] = close_price_vector[i]-open_price_vector[i]
             
         
         policy_reward = np.dot(weights, policy_reward)

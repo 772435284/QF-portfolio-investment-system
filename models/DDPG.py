@@ -12,7 +12,7 @@ from api_types import GlobalConfig, AgentProps
 from typing import Callable, List, cast, OrderedDict
 from os.path import join as path_join
 from torch.distributions import Categorical
-from utils.utils import hidden_init, obs_normalizer
+from utils.utils import hidden_init
 from tensorboardX import SummaryWriter
 
 # Define actor network

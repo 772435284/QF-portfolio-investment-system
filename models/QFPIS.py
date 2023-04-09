@@ -12,35 +12,34 @@ from api_types import GlobalConfig, AgentProps
 from typing import Callable, List, cast, OrderedDict
 from os.path import join as path_join
 from torch.distributions import Categorical
-from utils.utils import hidden_init, obs_normalizer
+from utils.utils import hidden_init
 from tensorboardX import SummaryWriter
-
+from observation.obs_creator import obs_creator
+import torchlayers
 
 # Define actor network
 class Actor(nn.Module):
-    def __init__(self,product_num, win_size):
+    def __init__(self, product_num, win_size, num_features):
         super(Actor, self).__init__()
-        self.conv1 = nn.Conv2d(
-            in_channels =  1,
+        self.conv1 = nn.Conv3d(
+            in_channels = 1,
             out_channels = 32,
-            kernel_size = (1,3),
-            #stride = (1,3)
+            kernel_size = (1, 1, 1)
         )
-        self.conv2 = nn.Conv2d(
+        self.conv2 = nn.Conv3d(
             in_channels = 32,
             out_channels = 32,
-            kernel_size = (1, win_size-2),
-            #stride = (1, win_size-2)
+            kernel_size = (1, 1, win_size-2)
         )
-        self.linear1 = nn.Linear((product_num + 1)*1*32, 64)
+        self.linear1 = nn.Linear(60, 64)
         self.linear2 = nn.Linear(64, 64)
-        self.linear3 = nn.Linear(64,product_num + 1)
-    
+        self.linear3 = nn.Linear(64, product_num+1)
+
     def reset_parameters(self):
         self.linear1.weight.data.uniform_(*hidden_init(self.linear1))
         self.linear2.weight.data.uniform_(*hidden_init(self.linear2))
         self.linear3.weight.data.uniform_(-3e-3, 3e-3)
-    
+
     def forward(self, state):
         conv1_out = self.conv1(state)
         conv1_out = F.relu(conv1_out)
@@ -53,35 +52,33 @@ class Actor(nn.Module):
         fc2_out = self.linear2(fc1_out)
         fc2_out = F.relu(fc2_out)
         fc3_out = self.linear3(fc2_out)
-        fc3_out = F.softmax(fc3_out,dim=1)
-        
+        fc3_out = F.softmax(fc3_out, dim=1)
+
         return fc3_out
 
 # Define Critic network
 class Critic(nn.Module):
-    def __init__(self, product_num, win_size):
+    def __init__(self, product_num, win_size, num_features):
         super(Critic, self).__init__()
-        self.conv1 = nn.Conv2d(
-            in_channels =  1,
+        self.conv1 = nn.Conv3d(
+            in_channels = 1,
             out_channels = 32,
-            kernel_size = (1,3),
-            #stride = (1,3)
+            kernel_size = (1, 1, 1)
         )
-        self.conv2 = nn.Conv2d(
+        self.conv2 = nn.Conv3d(
             in_channels = 32,
             out_channels = 32,
-            kernel_size = (1, win_size-2),
-            #stride = (1, win_size-2)
+            kernel_size = (1, 1, win_size-2)
         )
-        self.linear1 = nn.Linear((product_num + 1)*1*32, 64)
+        self.linear1 = nn.Linear(60, 64)
         self.linear2 = nn.Linear((product_num + 1), 64)
         self.linear3 = nn.Linear(64, 1)
-    
+
     def reset_parameters(self):
         self.linear1.weight.data.uniform_(*hidden_init(self.linear1))
         self.linear2.weight.data.uniform_(*hidden_init(self.linear2))
         self.linear3.weight.data.uniform_(-3e-3, 3e-3)
-    
+
     def forward(self, state, action):
         # Observation channel
         conv1_out = self.conv1(state)
@@ -93,10 +90,10 @@ class Critic(nn.Module):
         fc1_out = self.linear1(conv2_out)
         # Action channel
         fc2_out = self.linear2(action)
-        obs_plus_ac = torch.add(fc1_out,fc2_out)
+        obs_plus_ac = torch.add(fc1_out, fc2_out)
         obs_plus_ac = F.relu(obs_plus_ac)
         fc3_out = self.linear3(obs_plus_ac)
-        
+
         return fc3_out
 
 class Policy(nn.Module):
@@ -168,21 +165,23 @@ class QFPIS(object):
         self.actor_noise = actor_noise
         self.env = env
         self.device = device
+        self.action_size = config.qpl_level + 1
+        self.num_features = len(config.factor)
         # self.price_history = price_history
         # self.trading_dates = trading_dates
         # assert len(trading_dates) == config.max_step+self.window_size
         
         self.summary_path = path_join(config.summary_path, config.model_name)
         
-        self.actor = Actor(product_num,window_size).to(self.device)
-        self.actor_target = Actor(product_num,window_size).to(self.device)
-        self.critic = Critic(product_num,window_size).to(self.device)
-        self.critic_target = Critic(product_num,window_size).to(self.device)
+        self.actor = Actor(product_num,window_size,self.num_features).to(self.device)
+        self.actor_target = Actor(product_num,window_size,self.num_features).to(self.device)
+        self.critic = Critic(product_num,window_size,self.num_features).to(self.device)
+        self.critic_target = Critic(product_num,window_size, self.num_features).to(self.device)
         
 
         # Here is the code for the policy-gradeint
         
-        self.policy = Policy(product_num, window_size, 2).to(self.device)
+        self.policy = Policy(product_num, window_size,self.num_features,self.action_size).to(self.device)
         self.policy_optim = optim.Adam(self.policy.parameters(), lr=1e-4)
         
         self.actor.reset_parameters()
@@ -282,13 +281,15 @@ class QFPIS(object):
         total_step = 0
         moving_average_reward = 0
         writer = SummaryWriter(self.summary_path)
+        creator = obs_creator(self.config.norm_method,self.config.norm_type)
         # Main training loop
         for i in range(num_episode):
             previous_observation, _ = self.env.reset()
             # Normalization
-            previous_observation = obs_normalizer(previous_observation)
-            
-            previous_observation = previous_observation.transpose(2, 0, 1)
+            previous_observation = creator.create_obs(previous_observation)
+
+            #previous_observation = previous_observation.transpose(2, 0, 1)
+            #previous_observation = np.expand_dims(previous_observation, axis=0)
             ep_reward = 0
             ep_ave_max_q = 0
             
@@ -299,6 +300,7 @@ class QFPIS(object):
         		# ================================================
                 
                 action = self.act(previous_observation)
+
                 action_policy = self.select_action(previous_observation)
                 #print(action_policy)
                 # ================================================
@@ -315,9 +317,10 @@ class QFPIS(object):
                 # ================================================
                 
                 
-                observation = obs_normalizer(observation_origin)
+                observation = creator.create_obs(observation_origin)
                 # Reshape
-                observation = observation.transpose(2, 0, 1)
+                #observation = observation.transpose(2, 0, 1)
+                #observation = np.expand_dims(observation, axis=0)
                 # ================================================
         		# 3. Store (st, at, rt, st+1)
         		# ================================================

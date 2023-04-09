@@ -4,13 +4,14 @@ mode: 'Train'
 use_cuda: True
 ddpg_model_dir: 'breakpoint/QFPIS'
 pga_model_dir: 'breakpoint/QFPIS_pga'
+factor:
+- 'price_return'
+- 'MACD'
 market_feature:
 - 'Open'
 - 'High'
 - 'Low'
 - 'Close'
-- 'QPL1'
-- 'QPL-1'
 agent_list:
   - name: 'QFPIS_QPL_2'
     product_list:
@@ -56,6 +57,8 @@ use_agents: 0
 # 模型训练参数
 gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
 use_qpl: True
+norm_method: 'z_score'
+norm_type: 'rolling'
 qpl_level: 2
 window_size: 3
 episode: 100

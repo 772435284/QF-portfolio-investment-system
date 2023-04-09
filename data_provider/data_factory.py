@@ -34,6 +34,9 @@ def data_provider(config: GlobalConfig):
                        mode=config.mode,
                        train_ratio=config.train_ratio,
                        val_ratio= config.val_ratio,
+                       factor = config.factor,
+                       norm_method = config.norm_method,
+                       norm_type = config.norm_type,
                        start_date= start_date
                        )
     return data_loader

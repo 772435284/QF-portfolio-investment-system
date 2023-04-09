@@ -7,7 +7,9 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
 import warnings
 import datetime
-from factor.qpl import get_nqpr
+from data_provider.qpl import get_nqpr
+from data_provider.factor_lib import factor_lib
+
 
 eps = 1e-8
 
@@ -18,7 +20,7 @@ eps = 1e-8
 
 # A class that is responsible for data processing
 class Dataset_Custom(object):
-    def __init__(self, product_list, market_feature, feature_num, steps, window_length, mode, train_ratio, val_ratio, start_index=0, start_date=None):
+    def __init__(self, product_list, market_feature, feature_num, steps, window_length, mode, train_ratio, val_ratio, factor, norm_method, norm_type, start_index=0, start_date=None):
         
         self.product_list = product_list
         self.market_feature = market_feature
@@ -32,8 +34,11 @@ class Dataset_Custom(object):
         self.train_ratio = train_ratio
         self.val_ratio = val_ratio
         self.get_nqpr()
+        self.norm_method = norm_method
+        self.norm_type = norm_type
+        self.fc_lib = factor_lib(factor,norm_method,norm_type)
         self.load_observations()
-    
+        
     def load_observations(self):
         # 使用列表推导式读取所有产品的数据
         data_list = [pd.read_csv(f'Data/D_{product}.csv', engine='pyarrow')[self.market_feature].dropna() for product in self.product_list]
@@ -47,7 +52,8 @@ class Dataset_Custom(object):
             combined_data[:, :, idx] = data.values
 
         combined_data = combined_data[::-1].copy()
-        observations = combined_data
+        observations = self.fc_lib.create_factor(combined_data)
+
 
         if self.mode == "Train":
             self._data = observations[0:int(self.train_ratio * observations.shape[0])]
@@ -70,9 +76,6 @@ class Dataset_Custom(object):
 
         done = self.index >= self.steps or self.index + self.window_length >= self._data.shape[1]
         
-
-        
-
         return obs, done
 
     def get_nqpr(self):
@@ -120,10 +123,6 @@ class Dataset_Custom(object):
         combined_nqpr = combined_nqpr.to_numpy()
         
         return combined_nqpr
-        
-        
-
-        
 
     def reset(self):
         self.index = 0
