@@ -284,9 +284,9 @@ class QFPIS(object):
         writer = SummaryWriter(self.summary_path)
         # Main training loop
         for i in range(num_episode):
-            previous_observation = self.env.reset()
+            previous_observation, _ = self.env.reset()
             # Normalization
-            previous_observation,_ = obs_normalizer(previous_observation)
+            previous_observation = obs_normalizer(previous_observation)
             
             previous_observation = previous_observation.transpose(2, 0, 1)
             ep_reward = 0
