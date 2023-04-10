@@ -19,27 +19,29 @@ import torchlayers
 
 # Define actor network
 class Actor(nn.Module):
-    def __init__(self, product_num, win_size, num_features):
+    def __init__(self,product_num, win_size,num_features):
         super(Actor, self).__init__()
-        self.conv1 = nn.Conv3d(
-            in_channels = 1,
+        self.conv1 = nn.Conv2d(
+            in_channels =  num_features,
             out_channels = 32,
-            kernel_size = (1, 1, 1)
+            kernel_size = (1,3),
+            #stride = (1,3)
         )
-        self.conv2 = nn.Conv3d(
+        self.conv2 = nn.Conv2d(
             in_channels = 32,
             out_channels = 32,
-            kernel_size = (1, 1, win_size-2)
+            kernel_size = (1, win_size-2),
+            #stride = (1, win_size-2)
         )
-        self.linear1 = nn.Linear(60, 64)
+        self.linear1 = nn.Linear((product_num + 1)*1*32, 64)
         self.linear2 = nn.Linear(64, 64)
-        self.linear3 = nn.Linear(64, product_num+1)
-
+        self.linear3 = nn.Linear(64,product_num + 1)
+    
     def reset_parameters(self):
         self.linear1.weight.data.uniform_(*hidden_init(self.linear1))
         self.linear2.weight.data.uniform_(*hidden_init(self.linear2))
         self.linear3.weight.data.uniform_(-3e-3, 3e-3)
-
+    
     def forward(self, state):
         conv1_out = self.conv1(state)
         conv1_out = F.relu(conv1_out)
@@ -52,33 +54,35 @@ class Actor(nn.Module):
         fc2_out = self.linear2(fc1_out)
         fc2_out = F.relu(fc2_out)
         fc3_out = self.linear3(fc2_out)
-        fc3_out = F.softmax(fc3_out, dim=1)
-
+        fc3_out = F.softmax(fc3_out,dim=1)
+        
         return fc3_out
 
 # Define Critic network
 class Critic(nn.Module):
-    def __init__(self, product_num, win_size, num_features):
+    def __init__(self, product_num, win_size,num_features):
         super(Critic, self).__init__()
-        self.conv1 = nn.Conv3d(
-            in_channels = 1,
+        self.conv1 = nn.Conv2d(
+            in_channels =  num_features,
             out_channels = 32,
-            kernel_size = (1, 1, 1)
+            kernel_size = (1,3),
+            #stride = (1,3)
         )
-        self.conv2 = nn.Conv3d(
+        self.conv2 = nn.Conv2d(
             in_channels = 32,
             out_channels = 32,
-            kernel_size = (1, 1, win_size-2)
+            kernel_size = (1, win_size-2),
+            #stride = (1, win_size-2)
         )
-        self.linear1 = nn.Linear(60, 64)
+        self.linear1 = nn.Linear((product_num + 1)*1*32, 64)
         self.linear2 = nn.Linear((product_num + 1), 64)
         self.linear3 = nn.Linear(64, 1)
-
+    
     def reset_parameters(self):
         self.linear1.weight.data.uniform_(*hidden_init(self.linear1))
         self.linear2.weight.data.uniform_(*hidden_init(self.linear2))
         self.linear3.weight.data.uniform_(-3e-3, 3e-3)
-
+    
     def forward(self, state, action):
         # Observation channel
         conv1_out = self.conv1(state)
@@ -90,19 +94,20 @@ class Critic(nn.Module):
         fc1_out = self.linear1(conv2_out)
         # Action channel
         fc2_out = self.linear2(action)
-        obs_plus_ac = torch.add(fc1_out, fc2_out)
+        obs_plus_ac = torch.add(fc1_out,fc2_out)
         obs_plus_ac = F.relu(obs_plus_ac)
         fc3_out = self.linear3(obs_plus_ac)
-
+        
         return fc3_out
 
+# Define Policy network
 class Policy(nn.Module):
-    def __init__(self,product_num, win_size,action_size):
+    def __init__(self,product_num, win_size,num_features,action_size):
         super(Policy, self).__init__()
 
-        self.lstm = nn.LSTM(win_size,32,1)
+        self.lstm = nn.LSTM(win_size,32,2)
 
-        self.linear1 = nn.Linear((product_num+1)*1*32, 64)
+        self.linear1 = nn.Linear((product_num+1)*num_features*1*32, 64)
         self.linear2 = nn.Linear(64, 64)
         self.linear3 = nn.Linear(64,action_size)
 
@@ -110,6 +115,7 @@ class Policy(nn.Module):
         self.saved_log_probs = []
         self.rewards = []
         self.product_num = product_num
+        self.num_features = num_features
         self.win_size = win_size
 
     def reset_parameters(self):
@@ -125,7 +131,7 @@ class Policy(nn.Module):
         #print(lstm_out)
         batch_n,win_s,hidden_s = lstm_out.shape
         lstm_out = lstm_out.view(batch_n, win_s*hidden_s)
-        lstm_out = torch.reshape(lstm_out, (-1, self.product_num+1, 32))
+        lstm_out = torch.reshape(lstm_out, (-1, (self.product_num+1)*self.num_features, 32))
         lstm_out = lstm_out.view(lstm_out.size(0), -1)
         fc1_out = self.linear1(lstm_out)
         #fc1_out = F.relu(fc1_out)
@@ -181,7 +187,7 @@ class QFPIS(object):
 
         # Here is the code for the policy-gradeint
         
-        self.policy = Policy(product_num, window_size,self.num_features,self.action_size).to(self.device)
+        self.policy = Policy(product_num, window_size, self.num_features,self.action_size).to(self.device)
         self.policy_optim = optim.Adam(self.policy.parameters(), lr=1e-4)
         
         self.actor.reset_parameters()
@@ -288,7 +294,7 @@ class QFPIS(object):
             # Normalization
             previous_observation = creator.create_obs(previous_observation)
 
-            #previous_observation = previous_observation.transpose(2, 0, 1)
+            previous_observation = previous_observation.transpose(2, 0, 1)
             #previous_observation = np.expand_dims(previous_observation, axis=0)
             ep_reward = 0
             ep_ave_max_q = 0
@@ -319,7 +325,7 @@ class QFPIS(object):
                 
                 observation = creator.create_obs(observation_origin)
                 # Reshape
-                #observation = observation.transpose(2, 0, 1)
+                observation = observation.transpose(2, 0, 1)
                 #observation = np.expand_dims(observation, axis=0)
                 # ================================================
         		# 3. Store (st, at, rt, st+1)

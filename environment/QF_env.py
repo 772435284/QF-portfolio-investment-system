@@ -83,13 +83,12 @@ class envs(gym.Env):
                     y1[i] = pr[i]
                 # Select action 1: choose QPL+1
                 # for the + QPL in range
-                for k in range(1,self.action_size):
-                    if combine_qpl[j][i] < high_price_vector[i] and combine_qpl[j][i]>low_price_vector[i] and combine_qpl[j][i]!=0 and action_policy==k:
-                        y1[i] = combine_qpl[j][i]/close_price_vector[i]
-                        reset = 1
-                    # for the +QPL not in range
-                    if combine_qpl[j][i] > high_price_vector[i] and action_policy==k:
-                        y1[i] = pr[i]
+                if combine_qpl[j][i] < high_price_vector[i] and combine_qpl[j][i]>low_price_vector[i] and combine_qpl[j][i]!=0 and action_policy==j+1:
+                    y1[i] = combine_qpl[j][i]/close_price_vector[i]
+                    reset = 1
+                # for the +QPL not in range
+                if combine_qpl[j][i] > high_price_vector[i] and action_policy==j+1:
+                    y1[i] = pr[i]
             
            
         open_price_vector = observation[:, -1, 0]
@@ -100,17 +99,15 @@ class envs(gym.Env):
         
         policy_reward = np.zeros((10,1), dtype=float)
         for i in range(len(open_price_vector)):
-            
-            if action_policy == 0:
-                policy_reward[i] = close_price_vector[i]-open_price_vector[i]
-            
-            # Select action 1: choose QPL+1
-            # for the + QPL in range
-            for k in range(1,self.action_size):
-                if combine_qpl[j][i] < high_price_vector[i] and combine_qpl[j][i]>low_price_vector[i] and combine_qpl[j][i]!=0 and action_policy==k:
+            for j in range(len(combine_qpl)):
+                if action_policy == 0:
+                    policy_reward[i] = close_price_vector[i]-open_price_vector[i]
+                # Select action 1: choose QPL+1
+                # for the + QPL in range
+                if combine_qpl[j][i] < high_price_vector[i] and combine_qpl[j][i]>low_price_vector[i] and combine_qpl[j][i]!=0 and action_policy==j+1:
                     policy_reward[i] = combine_qpl[j][i]-open_price_vector[i]
                 # for the +QPL not in range
-                if combine_qpl[j][i] > high_price_vector[i] and action_policy==1:
+                if combine_qpl[j][i] > high_price_vector[i] and action_policy==j+1:
                     policy_reward[i] = close_price_vector[i]-open_price_vector[i]
             
         
