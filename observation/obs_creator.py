@@ -11,7 +11,7 @@ class obs_creator(object):
 
     def create_obs(self,observation):
         # Only use the factors after OHLC
-        obs = observation[:,:,4:]
+        obs = observation[:,:,8:]
         if self.norm_type == 'rolling':
             for i in range(observation.shape[0]):
                 for j in range(observation.shape[2]):

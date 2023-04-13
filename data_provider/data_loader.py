@@ -103,7 +103,7 @@ class Dataset_Custom(object):
                 close_prices = stock_data['Close'].tolist()
                 
                 # 使用get_nqpr函数计算nqpr
-                nqpr = get_nqpr(close_prices)
+                nqpr = get_nqpr(close_prices[::-1])
 
                 # 将nqpr转换为DataFrame，并重命名行索引，以便在最后的DataFrame中识别不同股票的nqpr
                 nqpr_df = pd.DataFrame(nqpr[:-1]).T.rename(index={0: symbol})

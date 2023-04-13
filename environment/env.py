@@ -59,7 +59,7 @@ class envs(gym.Env):
         open_price_vector = observation[:, -1, 0]
 
         reset = 0
-        y1 = observation[:, 0, 3] / observation[:, -1, 3]
+        y1 = close_price_vector/open_price_vector
 
         reward, info, done2 = self.portfolio._step(weights, y1, reset)
         info['date'] = index_to_date(self.start_index + self.dataprocessor.idx + self.dataprocessor.index)

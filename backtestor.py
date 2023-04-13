@@ -15,9 +15,9 @@ from utils.utils import normalize,load_observations
 from tools.ddpg.ornstein_uhlenbeck import OrnsteinUhlenbeckActionNoise
 from models.DDPG import Actor
 from models.QFPIS import Policy
-from utils.utils import obs_normalizer
 from environment.env import envs
 from typing import Callable, List, cast, OrderedDict
+from observation.obs_creator import obs_creator
 
 
 class backtestor(object):
@@ -37,22 +37,25 @@ class backtestor(object):
         self.feature_num = len(self.market_feature)
         self.steps = config.max_step
         self.mode = config.mode
+        self.action_size = config.qpl_level + 1
+        self.num_features = len(config.factor)
     
     
 
     def load_actor(self):
-        self.actor = Actor(product_num=self.product_num,win_size=self.window_size).to(self.device)
-        self.actor.load_state_dict(torch.load(path_join(self.config.ddpg_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_0'+ str(self.config.episode-1))))
+        self.actor = Actor(product_num=self.product_num,win_size=self.window_size,num_features=self.num_features).to(self.device)
+        self.actor.load_state_dict(torch.load(path_join(self.config.ddpg_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_'+ str(self.config.episode-1))))
         
 
     def load_policy(self,action_size):
-        self.policy = Policy(product_num = self.product_num, win_size = self.window_size, action_size = action_size).to(self.device)
-        self.policy.load_state_dict(torch.load(path_join(self.config.pga_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_0'+ str(self.config.episode-1))))
+        self.policy = Policy(product_num = self.product_num, win_size = self.window_size,num_features=self.num_features, action_size = action_size).to(self.device)
+        self.policy.load_state_dict(torch.load(path_join(self.config.pga_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_'+ str(self.config.episode-1))))
         
 
     def backtest_ddpg(self, model):
+        creator = obs_creator(self.config.norm_method,self.config.norm_type)
         observation, info = self.env.reset()
-        observation = obs_normalizer(observation)
+        observation = creator.create_obs(observation)
         observation = observation.transpose(2, 0, 1)
         done = False
         ep_reward = 0
@@ -67,16 +70,17 @@ class backtestor(object):
             r = info['log_return']
             wealth=wealth*math.exp(r)
             CR.append(wealth)
-            observation = obs_normalizer(observation)
+            observation =  creator.create_obs(observation)
             observation = observation.transpose(2, 0, 1)
         return CR
 
     def backtest_qf(self, actor, policy):
+        creator = obs_creator(self.config.norm_method,self.config.norm_type)
         eps = 1e-8
         actions = []
         weights = []
         observation, info = self.env.reset()
-        observation = obs_normalizer(observation)
+        observation = creator.create_obs(observation)
         observation = observation.transpose(2, 0, 1)
         done = False
         ep_reward = 0
@@ -100,7 +104,7 @@ class backtestor(object):
             wealth=wealth*math.exp(r)
             CR.append(wealth)
             ep_reward += reward
-            observation = obs_normalizer(observation)
+            observation = creator.create_obs(observation)
             observation = observation.transpose(2, 0, 1)
         return actions, weights, CR
 

@@ -15,7 +15,6 @@ from utils.utils import normalize,load_observations
 from tools.ddpg.ornstein_uhlenbeck import OrnsteinUhlenbeckActionNoise
 from models.DDPG import Actor
 from models.QFPIS import Policy
-from utils.utils import obs_normalizer
 from environment.env import envs
 from typing import Callable, List, cast, OrderedDict
 from backtestor import backtestor

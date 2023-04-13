@@ -14,13 +14,14 @@ from os.path import join as path_join
 from torch.distributions import Categorical
 from utils.utils import hidden_init
 from tensorboardX import SummaryWriter
+from observation.obs_creator import obs_creator
 
 # Define actor network
 class Actor(nn.Module):
-    def __init__(self,product_num, win_size):
+    def __init__(self,product_num, win_size, num_features):
         super(Actor, self).__init__()
         self.conv1 = nn.Conv2d(
-            in_channels =  1,
+            in_channels =  num_features,
             out_channels = 32,
             kernel_size = (1,3),
             #stride = (1,3)
@@ -59,10 +60,10 @@ class Actor(nn.Module):
 
 # Define Critic network
 class Critic(nn.Module):
-    def __init__(self, product_num, win_size):
+    def __init__(self, product_num, win_size,num_features):
         super(Critic, self).__init__()
         self.conv1 = nn.Conv2d(
-            in_channels =  1,
+            in_channels =  num_features,
             out_channels = 32,
             kernel_size = (1,3),
             #stride = (1,3)
@@ -125,16 +126,17 @@ class DDPG(object):
         self.actor_noise = actor_noise
         self.env = env
         self.device = device
+        self.num_features = len(config.factor)
         # self.price_history = price_history
         # self.trading_dates = trading_dates
         # assert len(trading_dates) == config.max_step+self.window_size
         
         self.summary_path = path_join(config.summary_path, config.model_name)
         
-        self.actor = Actor(product_num,window_size).to(self.device)
-        self.actor_target = Actor(product_num,window_size).to(self.device)
-        self.critic = Critic(product_num,window_size).to(self.device)
-        self.critic_target = Critic(product_num,window_size).to(self.device)
+        self.actor = Actor(product_num,window_size,self.num_features).to(self.device)
+        self.actor_target = Actor(product_num,window_size,self.num_features).to(self.device)
+        self.critic = Critic(product_num,window_size,self.num_features).to(self.device)
+        self.critic_target = Critic(product_num,window_size,self.num_features).to(self.device)
         
         self.actor.reset_parameters()
         self.actor_target.reset_parameters()
@@ -187,11 +189,12 @@ class DDPG(object):
         self.buffer = ReplayBuffer(self.config.buffer_size)
         total_step = 0
         writer = SummaryWriter(logdir=self.summary_path)
+        creator = obs_creator(self.config.norm_method,self.config.norm_type)
         # Main training loop
         for i in range(num_episode):
-            previous_observation = self.env.reset()
+            previous_observation, _ = self.env.reset()
             # Normalization
-            previous_observation = obs_normalizer(previous_observation)
+            previous_observation = creator.create_obs(previous_observation)
             # Reshape
             previous_observation = previous_observation.transpose(2, 0, 1)
             ep_reward = 0
@@ -207,7 +210,7 @@ class DDPG(object):
         		# 2. Obtain reward rt and reach new state st+1
                 # ================================================
                 observation, reward, done, _ = self.env.step(action)
-                observation = obs_normalizer(observation)
+                observation = creator.create_obs(observation)
                 # Reshape
                 observation = observation.transpose(2, 0, 1)
                 # ================================================

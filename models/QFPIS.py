@@ -15,7 +15,7 @@ from torch.distributions import Categorical
 from utils.utils import hidden_init
 from tensorboardX import SummaryWriter
 from observation.obs_creator import obs_creator
-import torchlayers
+
 
 # Define actor network
 class Actor(nn.Module):
