@@ -44,19 +44,18 @@ class backtestor(object):
 
     def load_actor(self):
         self.actor = Actor(product_num=self.product_num,win_size=self.window_size,num_features=self.num_features).to(self.device)
-        self.actor.load_state_dict(torch.load(path_join(self.config.ddpg_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_'+ str(self.config.episode-1))))
+        self.actor.load_state_dict(torch.load(path_join(self.config.ddpg_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_0'+ str(self.config.episode-1))))
         
 
     def load_policy(self,action_size):
         self.policy = Policy(product_num = self.product_num, win_size = self.window_size,num_features=self.num_features, action_size = action_size).to(self.device)
-        self.policy.load_state_dict(torch.load(path_join(self.config.pga_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_'+ str(self.config.episode-1))))
+        self.policy.load_state_dict(torch.load(path_join(self.config.pga_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_0'+ str(self.config.episode-1))))
         
 
     def backtest_ddpg(self, model):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
         observation, info = self.env.reset()
         observation = creator.create_obs(observation)
-        observation = observation.transpose(2, 0, 1)
         done = False
         ep_reward = 0
         wealth = self.config.wealth
@@ -71,7 +70,6 @@ class backtestor(object):
             wealth=wealth*math.exp(r)
             CR.append(wealth)
             observation =  creator.create_obs(observation)
-            observation = observation.transpose(2, 0, 1)
         return CR
 
     def backtest_qf(self, actor, policy):
@@ -81,7 +79,6 @@ class backtestor(object):
         weights = []
         observation, info = self.env.reset()
         observation = creator.create_obs(observation)
-        observation = observation.transpose(2, 0, 1)
         done = False
         ep_reward = 0
         wealth = self.config.wealth
@@ -105,7 +102,6 @@ class backtestor(object):
             CR.append(wealth)
             ep_reward += reward
             observation = creator.create_obs(observation)
-            observation = observation.transpose(2, 0, 1)
         return actions, weights, CR
 
 

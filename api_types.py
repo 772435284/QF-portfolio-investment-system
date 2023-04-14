@@ -19,6 +19,7 @@ class GlobalConfig(DictLikeObject):
 	ddpg_model_dir: str
 	pg_model_dir: str
 	pga_model_dir: str
+	baseline_dir: str
 	agent_list: List[AgentProps]
 	use_agents: Union[List[int], int]
 	factor: List[str]

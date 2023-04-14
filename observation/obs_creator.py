@@ -16,6 +16,7 @@ class obs_creator(object):
             for i in range(observation.shape[0]):
                 for j in range(observation.shape[2]):
                     observation[i, :, j] = self.norm.normalize(observation[i, :, j].reshape(-1, 1)).flatten()
+        obs = obs.transpose(2, 0, 1)
         return obs
         
         

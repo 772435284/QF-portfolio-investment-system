@@ -1,10 +1,11 @@
 # 通用参数
 model_name: 'QFPIS'
-mode: 'Train'
+mode: 'Test'
 use_cuda: True
 data_dir: 'new_data'
 ddpg_model_dir: 'breakpoint/QFPIS'
 pga_model_dir: 'breakpoint/QFPIS_pga'
+baseline_dir: 'breakpoint/baseline'
 factor:
 - 'price_return'
 market_feature:

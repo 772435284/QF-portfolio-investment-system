@@ -293,8 +293,6 @@ class QFPIS(object):
             previous_observation, _ = self.env.reset()
             # Normalization
             previous_observation = creator.create_obs(previous_observation)
-
-            previous_observation = previous_observation.transpose(2, 0, 1)
             #previous_observation = np.expand_dims(previous_observation, axis=0)
             ep_reward = 0
             ep_ave_max_q = 0
@@ -324,8 +322,6 @@ class QFPIS(object):
                 
                 
                 observation = creator.create_obs(observation_origin)
-                # Reshape
-                observation = observation.transpose(2, 0, 1)
                 #observation = np.expand_dims(observation, axis=0)
                 # ================================================
         		# 3. Store (st, at, rt, st+1)

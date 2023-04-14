@@ -196,7 +196,6 @@ class DDPG(object):
             # Normalization
             previous_observation = creator.create_obs(previous_observation)
             # Reshape
-            previous_observation = previous_observation.transpose(2, 0, 1)
             ep_reward = 0
             ep_ave_max_q = 0
             
@@ -212,7 +211,6 @@ class DDPG(object):
                 observation, reward, done, _ = self.env.step(action)
                 observation = creator.create_obs(observation)
                 # Reshape
-                observation = observation.transpose(2, 0, 1)
                 # ================================================
         		# 3. Store (st, at, rt, st+1)
         		# ================================================
