@@ -2,6 +2,7 @@
 model_name: 'DDPG'
 mode: 'Test'
 use_cuda: True
+data_dir: 'new_data'
 ddpg_model_dir: 'breakpoint/ddpg'
 pga_model_dir: 'models_pga'
 factor:

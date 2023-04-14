@@ -37,6 +37,7 @@ def data_provider(config: GlobalConfig):
                        factor = config.factor,
                        norm_method = config.norm_method,
                        norm_type = config.norm_type,
+                       data_dir = config.data_dir,
                        start_date= start_date
                        )
     return data_loader

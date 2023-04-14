@@ -20,11 +20,12 @@ eps = 1e-8
 
 # A class that is responsible for data processing
 class Dataset_Custom(object):
-    def __init__(self, product_list, market_feature, feature_num, steps, window_length, mode, train_ratio, val_ratio, factor, norm_method, norm_type, start_index=0, start_date=None):
+    def __init__(self, product_list, market_feature, feature_num, steps, window_length, mode, train_ratio, val_ratio, factor, norm_method, norm_type, data_dir, start_index=0, start_date=None):
         
         self.product_list = product_list
         self.market_feature = market_feature
         self.feature_num = feature_num
+        self.data_dir = data_dir
         # Max step
         self.steps = steps + 1
         self.start_index = start_index
@@ -41,7 +42,7 @@ class Dataset_Custom(object):
         
     def load_observations(self):
         # 使用列表推导式读取所有产品的数据
-        data_list = [pd.read_csv(f'Data/D_{product}.csv', engine='pyarrow')[self.market_feature].dropna() for product in self.product_list]
+        data_list = [pd.read_csv(f'{self.data_dir}/D_{product}.csv', engine='pyarrow')[self.market_feature].dropna() for product in self.product_list]
 
         # 获取数据的shape并初始化一个空的数组来存储合并后的数据
         data_shape = data_list[0].shape
@@ -85,7 +86,7 @@ class Dataset_Custom(object):
 
         for symbol in self.product_list:
             # 读取每个股票的OHLC数据
-            file_path = f'Data/D_{symbol}.csv'
+            file_path = f'{self.data_dir}/D_{symbol}.csv'
             if os.path.exists(file_path):
                 stock_data = pd.read_csv(file_path)
                 

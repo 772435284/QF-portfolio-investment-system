@@ -15,6 +15,7 @@ class GlobalConfig(DictLikeObject):
 	# 通用参数
 	mode: str
 	use_cuda: bool
+	data_dir: str
 	ddpg_model_dir: str
 	pg_model_dir: str
 	pga_model_dir: str

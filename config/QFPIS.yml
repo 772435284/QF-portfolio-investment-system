@@ -2,6 +2,7 @@
 model_name: 'QFPIS'
 mode: 'Train'
 use_cuda: True
+data_dir: 'new_data'
 ddpg_model_dir: 'breakpoint/QFPIS'
 pga_model_dir: 'breakpoint/QFPIS_pga'
 factor:
@@ -16,7 +17,7 @@ market_feature:
 - 'QPL2'
 - 'QPL-2'
 agent_list:
-  - name: 'QFPIS_QPL_2_200'
+  - name: 'QFPIS_QPL_2_200_2'
     product_list:
       - 'AUDCAD'
       - 'AUDUSD'
@@ -64,7 +65,7 @@ norm_method: 'z_score'
 norm_type: 'rolling'
 qpl_level: 2
 window_size: 3
-episode: 100
+episode: 200
 max_step: 1000
 buffer_size: 100000
 batch_size: 64
