@@ -50,6 +50,7 @@ class Dataset_Custom(object):
         # 将读取到的数据添加到合并后的数组中
         for idx, data in enumerate(data_list):
             combined_data[:, :, idx] = data.values
+        # 输入数据默认日期为倒序，因此需要将其反转
 
         combined_data = combined_data[::-1].copy()
         observations = self.fc_lib.create_factor(combined_data)
@@ -89,7 +90,7 @@ class Dataset_Custom(object):
                 stock_data = pd.read_csv(file_path)
                 
                 # Important: Make the date is in ascending order for QPL calcualtion!!!
-
+                # 先将数据按正序排序，取出训练集
                 # Combine the 'Year', 'Month', and 'Day' columns to form a single 'Date' column and convert it to datetime format
                 stock_data['Date'] = pd.to_datetime(stock_data[['Year', 'Month', 'Day']])
 
@@ -102,8 +103,12 @@ class Dataset_Custom(object):
                 # 提取收盘价数据
                 close_prices = stock_data['Close'].tolist()
                 
+                # 只能使用训练数据计算NQPR，因此只保留前train_ratio比例的数据
+                close_prices = close_prices[0:int(self.train_ratio * len(close_prices))]
+                # 翻转序列计算NQPR
+                close_prices = close_prices[::-1]
                 # 使用get_nqpr函数计算nqpr
-                nqpr = get_nqpr(close_prices[::-1])
+                nqpr = get_nqpr(close_prices)
 
                 # 将nqpr转换为DataFrame，并重命名行索引，以便在最后的DataFrame中识别不同股票的nqpr
                 nqpr_df = pd.DataFrame(nqpr[:-1]).T.rename(index={0: symbol})
