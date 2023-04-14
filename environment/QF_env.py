@@ -61,76 +61,42 @@ class envs(gym.Env):
         close_price_vector = observation[:, -1, 3]
         # Price relative vector
         
-        QPL1_vector = open_price_vector * self.combined_nqpr[:,0]
-        
-        QPL2_vector = open_price_vector * self.combined_nqpr[:,1]
-        
-        # combine_qpl = []
-        # for i in range(self.qpl_level):
-        #     QPL_vector = open_price_vector * self.combined_nqpr[:,i]
-        #     combine_qpl.append(QPL_vector)
-        # combine_qpl = np.array(combine_qpl)
+        combine_qpl = np.array([open_price_vector * self.combined_nqpr[:, i] for i in range(self.qpl_level)])
         
         reset = 0
         y1 = np.zeros((10,), dtype=float)
-        
-        y1[0] = close_price_vector[0]/open_price_vector[0]
+        y1[0] = close_price_vector[0] / open_price_vector[0]
+
         for i in range(1, len(open_price_vector)):
-            # Select action 1: no reward
-            # Buy and hold
-            if action_policy==0:
-                y1[i] = close_price_vector[i]/open_price_vector[i]
-            # Select action 2: choose +QPL
-            # Open Buy Order
-            # for the + QPL in range
-            if QPL1_vector[i] < high_price_vector[i] and QPL1_vector[i]>low_price_vector[i] and QPL1_vector[i]!=0 and action_policy==1:
-                
-                y1[i] = QPL1_vector[i]/open_price_vector[i]
-            # for the +QPL not in range
-            if QPL1_vector[i] > high_price_vector[i] and action_policy==1:
-                
-                y1[i] = close_price_vector[i]/open_price_vector[i]
+            if action_policy == 0:
+                y1[i] = close_price_vector[i] / open_price_vector[i]
+            else:
+                for j, qpl in enumerate(combine_qpl):
+                    in_range = qpl[i] < high_price_vector[i] and qpl[i] > low_price_vector[i] and qpl[i] != 0
+                    out_of_range = qpl[i] > high_price_vector[i]
+
+                    if action_policy == j + 1:
+                        if in_range:
+                            y1[i] = qpl[i] / open_price_vector[i]
+                        elif out_of_range:
+                            y1[i] = close_price_vector[i] / open_price_vector[i]
             
-            if QPL2_vector[i] < high_price_vector[i] and QPL2_vector[i]>low_price_vector[i] and QPL2_vector[i]!=0 and action_policy==2:
-                y1[i] = QPL2_vector[i]/open_price_vector[i]
-                
-            if QPL2_vector[i] > high_price_vector[i] and action_policy==2:
-                y1[i] = close_price_vector[i]/open_price_vector[i]
-            
-        open_price_vector = observation[:, -1, 0]
-        high_price_vector = observation[:, -1, 1]
-        low_price_vector = observation[:, -1 , 2]
-        close_price_vector = observation[:, -1, 3]
         
-        QPL1_vector = open_price_vector * self.combined_nqpr[:,0]
-        
-        QPL2_vector = open_price_vector * self.combined_nqpr[:,1]
-        
-        c1 = close_price_vector / open_price_vector
-        
-        policy_reward = np.zeros((10,1), dtype=float)
+        policy_reward = np.zeros((10, 1), dtype=float)
 
         for i in range(len(open_price_vector)):
-            # Select action 0
-            # Buy and hold
             if action_policy == 0:
-                policy_reward[i] = close_price_vector[i]-open_price_vector[i]
-            
-            # Select action 1: choose +QPL1
-            # for the + QPL1 in range
-            if QPL1_vector[i] < high_price_vector[i] and QPL1_vector[i]>low_price_vector[i] and QPL1_vector[i]!=0 and action_policy==1:
-                policy_reward[i] = QPL1_vector[i]-open_price_vector[i]
-            # for the + QPL1 not in range
-            if QPL1_vector[i] > high_price_vector[i] and action_policy==1:
-                policy_reward[i] = close_price_vector[i]-open_price_vector[i]
-            
-            # Select action 2: choose +QPL2
-            # for the + QPL2 in range
-            if QPL2_vector[i] < high_price_vector[i] and QPL2_vector[i]>low_price_vector[i] and QPL2_vector[i]!=0 and action_policy==2:
-                policy_reward[i] = QPL2_vector[i]-open_price_vector[i]
-            # for the + QPL2 not in range
-            if QPL2_vector[i] > high_price_vector[i] and action_policy==2:
-                policy_reward[i] = close_price_vector[i]-open_price_vector[i]
+                policy_reward[i] = close_price_vector[i] - open_price_vector[i]
+            else:
+                for j, qpl in enumerate(combine_qpl):
+                    in_range = qpl[i] < high_price_vector[i] and qpl[i] > low_price_vector[i] and qpl[i] != 0
+                    out_of_range = qpl[i] > high_price_vector[i]
+
+                    if action_policy == j + 1:
+                        if in_range:
+                            policy_reward[i] = qpl[i] - open_price_vector[i]
+                        elif out_of_range:
+                            policy_reward[i] = close_price_vector[i] - open_price_vector[i]
             
         policy_reward = np.dot(weights, policy_reward)
         policy_reward = np.sum(policy_reward)
