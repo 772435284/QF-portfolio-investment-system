@@ -34,7 +34,7 @@ class Portfolio(object):
             mu1 = self.cost * (np.abs(w1[1:])).sum()
         else:
             mu1 = self.cost * (np.abs(dw1[1:] - w1[1:])).sum()
-
+            
         assert mu1 < 1.0, 'Cost is larger than current holding'
 
         p1 = p0 * (1 - mu1) * np.dot(y1, w1)  # (eq11) final portfolio value
