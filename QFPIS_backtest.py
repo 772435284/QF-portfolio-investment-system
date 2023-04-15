@@ -26,5 +26,5 @@ backtestor = backtestor(env, OrnsteinUhlenbeckActionNoise, device, config)
 backtestor.load_actor()
 backtestor.load_policy(action_size=config.qpl_level+1)
 
-CR = backtestor.backtest_qf(backtestor.actor, backtestor.policy)
+CR = backtestor.backtest_QFPIS(backtestor.actor, backtestor.policy)
 print(CR)

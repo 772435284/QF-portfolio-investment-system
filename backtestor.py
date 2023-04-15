@@ -52,7 +52,7 @@ class backtestor(object):
         self.policy.load_state_dict(torch.load(path_join(self.config.pga_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_0'+ str(self.config.episode-1))))
         
 
-    def backtest_ddpg(self, model):
+    def backtest_DDPG(self, model):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
         observation, info = self.env.reset()
         observation = creator.create_obs(observation)
@@ -72,7 +72,7 @@ class backtestor(object):
             observation =  creator.create_obs(observation)
         return CR
 
-    def backtest_qf(self, actor, policy):
+    def backtest_QFPIS(self, actor, policy):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
         eps = 1e-8
         actions = []

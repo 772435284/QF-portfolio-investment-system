@@ -27,5 +27,5 @@ backtestor = backtestor(env, OrnsteinUhlenbeckActionNoise, device, config)
 
 backtestor.load_actor()
 
-CR = backtestor.backtest_ddpg(backtestor.actor)
+CR = backtestor.backtest_DDPG(backtestor.actor)
 print(CR)
