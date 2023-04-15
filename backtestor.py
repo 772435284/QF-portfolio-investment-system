@@ -13,11 +13,20 @@ import yaml
 from torch.distributions import Categorical
 from utils.utils import normalize,load_observations
 from tools.ddpg.ornstein_uhlenbeck import OrnsteinUhlenbeckActionNoise
-from models.DDPG import Actor
+import models.DDPG as DDPG
+import models.A2C as A2C
+import models.QFPIS as QFPIS
 from models.QFPIS import Policy
 from environment.env import envs
 from typing import Callable, List, cast, OrderedDict
 from observation.obs_creator import obs_creator
+
+MODEL_DICT = {
+    "A2C": A2C,
+    "DDPG": DDPG,
+    "QFPIS": QFPIS
+    # "OtherModel": OtherModelClass
+}
 
 
 class backtestor(object):
@@ -42,17 +51,20 @@ class backtestor(object):
     
     
 
-    def load_actor(self):
-        self.actor = Actor(product_num=self.product_num,win_size=self.window_size,num_features=self.num_features).to(self.device)
-        self.actor.load_state_dict(torch.load(path_join(self.config.ddpg_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_0'+ str(self.config.episode-1))))
+    def load_actor(self, model_type, isbaseline=True):
+        model_class = MODEL_DICT.get(model_type)
+        self.actor = model_class.Actor(product_num=self.product_num,win_size=self.window_size,num_features=self.num_features).to(self.device)
+        if isbaseline:
+            self.actor.load_state_dict(torch.load(path_join(self.config.baseline_dir, AgentProps(self.config.agent_list[self.agent_index]).name )))
+        else:
+            self.actor.load_state_dict(torch.load(path_join(self.config.ddpg_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name )))
         
 
     def load_policy(self,action_size):
         self.policy = Policy(product_num = self.product_num, win_size = self.window_size,num_features=self.num_features, action_size = action_size).to(self.device)
-        self.policy.load_state_dict(torch.load(path_join(self.config.pga_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name +'_0'+ str(self.config.episode-1))))
+        self.policy.load_state_dict(torch.load(path_join(self.config.pga_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name)))
         
-
-    def backtest_DDPG(self, model):
+    def backtest_A2C(self):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
         observation, info = self.env.reset()
         observation = creator.create_obs(observation)
@@ -63,7 +75,29 @@ class backtestor(object):
         CR = []
         while not done:
             observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
-            action = model(observation).squeeze(0).cpu().detach().numpy()
+            action_probs = self.actor(observation)
+            with torch.no_grad():
+                action_probs = action_probs.cpu().numpy().squeeze()
+            observation, reward, done, info = self.env.step(action_probs)
+            ep_reward += reward
+            r = info['log_return']
+            wealth=wealth*math.exp(r)
+            CR.append(wealth)
+            observation =  creator.create_obs(observation)
+        return CR
+
+    def backtest_DDPG(self):
+        creator = obs_creator(self.config.norm_method,self.config.norm_type)
+        observation, info = self.env.reset()
+        observation = creator.create_obs(observation)
+        done = False
+        ep_reward = 0
+        wealth = self.config.wealth
+        # Collect culmulative return
+        CR = []
+        while not done:
+            observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
+            action = self.actor(observation).squeeze(0).cpu().detach().numpy()
             observation, reward, done, info = self.env.step(action)
             ep_reward += reward
             r = info['log_return']
@@ -72,7 +106,7 @@ class backtestor(object):
             observation =  creator.create_obs(observation)
         return CR
 
-    def backtest_QFPIS(self, actor, policy):
+    def backtest_QFPIS(self):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
         eps = 1e-8
         actions = []
@@ -86,9 +120,9 @@ class backtestor(object):
         CR = []
         while not done:
             observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
-            action = actor(observation).squeeze(0).cpu().detach().numpy()
+            action = self.actor(observation).squeeze(0).cpu().detach().numpy()
             # Here is the code for the policy gradient
-            actions_prob = policy(observation)
+            actions_prob = self.policy(observation)
             m = Categorical(actions_prob)
             # Selection action by sampling the action prob
             action_policy = m.sample()
@@ -103,6 +137,13 @@ class backtestor(object):
             ep_reward += reward
             observation = creator.create_obs(observation)
         return actions, weights, CR
+    
+    def backtest(self, model_type):
+        backtest_func = getattr(self, f'backtest_{model_type}', None)
+        if backtest_func is not None:
+            res = backtest_func()
+        return res
+
 
 
 

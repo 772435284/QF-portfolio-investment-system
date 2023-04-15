@@ -23,8 +23,8 @@ device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
 env = envs(config)
 backtestor = backtestor(env, OrnsteinUhlenbeckActionNoise, device, config)
 
-backtestor.load_actor()
+backtestor.load_actor("QFPIS",isbaseline=False)
 backtestor.load_policy(action_size=config.qpl_level+1)
 
-CR = backtestor.backtest_QFPIS(backtestor.actor, backtestor.policy)
+CR = backtestor.backtest("QFPIS")
 print(CR)

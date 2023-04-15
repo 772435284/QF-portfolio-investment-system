@@ -260,4 +260,4 @@ class DDPG(object):
                     print('Episode: {:d}, Reward: {:.2f}, Qmax: {:.4f}'.format(i, ep_reward, (ep_ave_max_q / float(j))))
                     break
         print('Finish.')
-        torch.save(self.actor.state_dict(), path_join(self.config.ddpg_model_dir, self.current_agent.name + f'_{i:03}'))
+        torch.save(self.actor.state_dict(), path_join(self.config.ddpg_model_dir, self.current_agent.name))

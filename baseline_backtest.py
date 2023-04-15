@@ -1,4 +1,4 @@
-import os
+import argparse
 from os.path import join as path_join
 import numpy as np
 from typing import cast
@@ -18,16 +18,31 @@ from models.QFPIS import Policy
 from environment.env import envs
 from typing import Callable, List, cast, OrderedDict
 from backtestor import backtestor
+from models.A2C import A2C
 
+# Add more models here
+MODEL_DICT = {
+    "A2C": A2C
+    # "OtherModel": OtherModelClass
+}
 
+# Parse command line arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('--model', type=str, default="A2C", help='baseline_model_name')
+args = parser.parse_args()
 
-with open('config/DDPG.yml', 'r', encoding='utf-8') as f:
+# Load configuration
+# Generate config file name based on selected model
+config_file_name = f'config/{args.model}.yml'
+
+# Load configuration
+with open(config_file_name, 'r', encoding='utf-8') as f:
     config = GlobalConfig(yaml.safe_load(f))
 device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
 env = envs(config)
 backtestor = backtestor(env, OrnsteinUhlenbeckActionNoise, device, config)
 
-backtestor.load_actor("DDPG",isbaseline=False)
+backtestor.load_actor(args.model)
 
-CR = backtestor.backtest("DDPG")
+CR = backtestor.backtest(args.model)
 print(CR)
