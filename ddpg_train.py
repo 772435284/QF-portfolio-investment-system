@@ -9,7 +9,7 @@ from tools.ddpg.ornstein_uhlenbeck import OrnsteinUhlenbeckActionNoise
 from models.DDPG import DDPG
 
 # Load configuration
-with open('config/ddpg.yml', 'r', encoding='utf-8') as f:
+with open('config/DDPG.yml', 'r', encoding='utf-8') as f:
 		config = GlobalConfig(yaml.safe_load(f))
 assert type(config.use_agents) == int, 'You must specify one agent for training!'
 agent_index = cast(int, config.use_agents)

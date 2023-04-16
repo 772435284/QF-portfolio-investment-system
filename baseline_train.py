@@ -9,17 +9,19 @@ from environment.env import envs
 from tools.ddpg.ornstein_uhlenbeck import OrnsteinUhlenbeckActionNoise
 from models.A2C import A2C
 from models.SAC import SAC
+from models.PPO import PPO
 
 # Add more models here
 MODEL_DICT = {
     "A2C": A2C,
-    "SAC": SAC
+    "SAC": SAC,
+    "PPO": PPO,
     # "OtherModel": OtherModelClass
 }
 
 # Parse command line arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="SAC", help='baseline_model_name')
+parser.add_argument('--model', type=str, default="PPO", help='baseline_model_name')
 args = parser.parse_args()
 
 # Load configuration
