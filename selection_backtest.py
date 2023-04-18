@@ -19,16 +19,22 @@ from environment.env import envs
 from typing import Callable, List, cast, OrderedDict
 from backtestor import backtestor
 from models.OLMAR import OLMAR
+from models.PAMR import PAMR
+from models.CWMR import CWMR
+from models.RMR import RMR
 
 # Add more models here
 MODEL_DICT = {
-    "OLMAR": OLMAR
+    "OLMAR": OLMAR,
+    "PAMR": PAMR,
+    "CWMR": CWMR,
+    "RMR": RMR,
     # "OtherModel": OtherModelClass
 }
 
 # Parse command line arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="OLMAR", help='baseline_model_name')
+parser.add_argument('--model', type=str, default="CWMR", help='baseline_model_name')
 args = parser.parse_args()
 
 # Load configuration

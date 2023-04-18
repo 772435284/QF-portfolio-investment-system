@@ -1,0 +1,102 @@
+# 通用参数
+model_name: 'CWMR'
+mode: 'Test'
+use_cuda: True
+data_dir: 'new_data'
+ddpg_model_dir: 'breakpoint/ddpg'
+pga_model_dir: 'models_pga'
+baseline_dir: 'breakpoint/baseline'
+factor:
+- 'price_return'
+market_feature:
+- 'Open'
+- 'High'
+- 'Low'
+- 'Close'
+agent_list:
+  - name: 'CWMR'
+    product_list:
+      - 'AUDCAD'
+      - 'AUDUSD'
+      - 'EURAUD'
+      - 'EURCAD'
+      - 'EURUSD'
+      - 'GBPUSD'
+      - 'NZDCHF'
+      - 'NZDUSD'
+      - 'USDCHF'
+  - name: 'agent2_3'
+    product_list:
+      - 'SHSE.600019'
+      - 'SHSE.600585'
+      - 'SHSE.600309'
+      - 'SHSE.600111'
+      - 'SHSE.603993'
+  - name: 'agent6_3'
+    product_list:
+      - 'SZSE.002241'
+      - 'SZSE.002223'
+      - 'SZSE.000048'
+      - 'SZSE.000977'
+      - 'SZSE.000998'
+  - name: 'agent7_3'
+    product_list:
+      - 'SZSE.000538'
+      - 'SZSE.000596'
+      - 'SZSE.002032'
+      - 'SZSE.000002'
+      - 'SZSE.000049'
+  - name: 'agent9_3'
+    product_list:
+      - 'SZSE.002351'
+      - 'SZSE.000100'
+      - 'SHSE.600188'
+      - 'SHSE.601225'
+      - 'SHSE.601088'
+use_agents: 0
+
+# 模型训练参数
+gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
+norm_method: 'z_score'
+norm_type: 'rolling'
+qpl_level: 2
+window_size: 3
+episode: 100
+max_step: 1000
+buffer_size: 100000
+batch_size: 64
+tau: 0.001
+gamma: 0.99
+actor_learning_rate: 0.0001
+critic_learning_rate: 0.001
+policy_learning_rate:  0.0001
+train_start_date: '2014-03-21'
+train_end_date: '2020-10-14'
+train_ratio: 0.8
+val_ratio: 0.0
+date_format: '%Y-%m-%d'
+train_intermediate_dir: 'train_intermediate'
+is_summary : True
+summary_path: 'train_summary'
+dataset: 'custom'
+verbose: 0
+
+# 模拟回测参数
+wealth: 10000
+
+# 回测核心参数
+gm_strategy_id: 'e896158a-c4e0-11eb-b4fa-d481d7a7eca1'
+gm_token: 'bbd3d8770baf830ce25ece54d22934a51f12f6dc'
+backtest_start_date: '2019-07-04'
+backtest_end_date: '2021-03-26'
+backtest_commission_ratio: 0.001
+backtest_slippage_ratio: 0.0001
+agent_cash_available: 0.9
+qpl_profit_level: null
+qpl_loss_level: null
+use_qpl: False
+use_pga: False
+nqpr_window_size: 1500
+random_seed: 10086
+use_dropout: False
+dropout_rate: 0.45
