@@ -99,10 +99,11 @@ class Dataset_Custom(object):
         self.index += 1
 
         obs = self.data[:, self.index:self.index + self.window_length,:].copy()
+        groud_truth = self.data[:, self.index + self.window_length:self.index + self.window_length + 1, :].copy()
 
-        done = self.index >= self.steps or self.index + self.window_length >= self._data.shape[1]
+        done = self.index >= self.steps or self.index + self.window_length >= self._data.shape[1] or self.index + self.window_length + 1 >= self._data.shape[1]
         
-        return obs, done
+        return obs, done, groud_truth
 
     def get_nqpr(self):
         # 初始化一个空的DataFrame，用于存储合并后的股票nqpr数据

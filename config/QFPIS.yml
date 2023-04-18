@@ -14,7 +14,7 @@ market_feature:
 - 'Low'
 - 'Close'
 agent_list:
-  - name: 'QFPIS_QPL_2_new_data'
+  - name: 'QFPIS_QPL_2_fix_truth'
     product_list:
       - 'AUDCAD'
       - 'AUDUSD'
