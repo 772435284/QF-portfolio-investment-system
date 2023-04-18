@@ -19,4 +19,3 @@ class obs_creator(object):
         obs = obs.transpose(2, 0, 1)
         return obs
         
-        

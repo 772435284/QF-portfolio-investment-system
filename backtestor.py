@@ -64,6 +64,27 @@ class backtestor(object):
         self.policy = Policy(product_num = self.product_num, win_size = self.window_size,num_features=self.num_features, action_size = action_size).to(self.device)
         self.policy.load_state_dict(torch.load(path_join(self.config.pga_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name)))
         
+    def backtest_selection(self,weights):
+        creator = obs_creator(self.config.norm_method,self.config.norm_type)
+        observation, info = self.env.reset()
+        observation = creator.create_obs(observation)
+        done = False
+        ep_reward = 0
+        wealth = self.config.wealth
+        CR = []
+        i = 0
+        while not done:
+            observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
+            observation, reward, done, info = self.env.selection_step(weights[i])
+            ep_reward += reward
+            r = info['log_return']
+            wealth=wealth*math.exp(r)
+            CR.append(wealth)
+            observation =  creator.create_obs(observation)
+            i+=1
+        return CR
+
+
     def backtest_A2C(self):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
         observation, info = self.env.reset()

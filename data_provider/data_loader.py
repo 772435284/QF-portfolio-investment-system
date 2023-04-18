@@ -68,7 +68,31 @@ class Dataset_Custom(object):
             print("Shape for Test observations -- T: ", self._data.shape)
         self._data = np.squeeze(self._data)
         self._data = self._data.transpose(2, 0, 1)
-    
+
+    def data_for_selection(self):
+        # 使用列表推导式读取所有产品的数据
+        data_list = [pd.read_csv(f'{self.data_dir}/D_{product}.csv', engine='pyarrow')[self.market_feature].dropna() for product in self.product_list]
+
+        # 获取数据的shape并初始化一个空的数组来存储合并后的数据
+        data_shape = data_list[0].shape
+        combined_data = np.zeros((data_shape[0], data_shape[1], len(self.product_list)))
+
+        # 将读取到的数据添加到合并后的数组中
+        for idx, data in enumerate(data_list):
+            combined_data[:, :, idx] = data.values
+        # 输入数据默认日期为倒序，因此需要将其反转
+
+        combined_data = combined_data[::-1].copy()
+        if self.mode == "Train":
+            self._data = combined_data[0:int(self.train_ratio * combined_data.shape[0])]
+            print("Shape for Train observations -- T: ", self._data.shape)
+        elif self.mode == "Val":
+            self._data = combined_data[int(self.train_ratio * combined_data.shape[0]):int((self.train_ratio+self.val_ratio) * combined_data.shape[0])]
+            print("Shape for Val observations -- T: ", self._data.shape)
+        elif self.mode == "Test":
+            self._data = combined_data[int((self.train_ratio+self.val_ratio) * combined_data.shape[0]):]
+            print("Shape for Test observations -- T: ", self._data.shape)
+        
 
     def _step(self):
 

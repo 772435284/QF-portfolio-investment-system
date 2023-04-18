@@ -1,10 +1,10 @@
 # 通用参数
-model_name: 'QFPIS'
-mode: 'Train'
+model_name: 'OLMAR'
+mode: 'Test'
 use_cuda: True
 data_dir: 'new_data'
-ddpg_model_dir: 'breakpoint/QFPIS'
-pga_model_dir: 'breakpoint/QFPIS_pga'
+ddpg_model_dir: 'breakpoint/ddpg'
+pga_model_dir: 'models_pga'
 baseline_dir: 'breakpoint/baseline'
 factor:
 - 'price_return'
@@ -14,7 +14,7 @@ market_feature:
 - 'Low'
 - 'Close'
 agent_list:
-  - name: 'QFPIS_QPL_2_new_data'
+  - name: 'OLMAR'
     product_list:
       - 'AUDCAD'
       - 'AUDUSD'
@@ -57,7 +57,6 @@ use_agents: 0
 
 # 模型训练参数
 gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
-use_qpl: True
 norm_method: 'z_score'
 norm_type: 'rolling'
 qpl_level: 2
@@ -70,12 +69,12 @@ tau: 0.001
 gamma: 0.99
 actor_learning_rate: 0.0001
 critic_learning_rate: 0.001
-policy_learning_rate: 0.0001
+policy_learning_rate:  0.0001
 train_start_date: '2014-03-21'
 train_end_date: '2020-10-14'
-date_format: '%Y-%m-%d'
 train_ratio: 0.8
 val_ratio: 0.0
+date_format: '%Y-%m-%d'
 train_intermediate_dir: 'train_intermediate'
 is_summary : True
 summary_path: 'train_summary'

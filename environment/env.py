@@ -39,6 +39,27 @@ class envs(gym.Env):
             trading_cost = 0.0025
         self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode)
         
+    def selection_step(self, weights):
+        observation, done1, = self.dataprocessor._step()
+
+        # Connect 1, no risk asset to the portfolio
+        c_observation = np.ones((1, self.window_length, observation.shape[2]))
+        
+        
+        observation = np.concatenate((c_observation, observation), axis=0)
+
+        # Obtain the price vector
+        close_price_vector = observation[:, -1, 3]
+        open_price_vector = observation[:, -1, 0]
+
+        reset = 0
+        y1 = close_price_vector/open_price_vector
+
+        reward, info, done2 = self.portfolio._step(weights, y1, reset)
+        info['date'] = index_to_date(self.start_index + self.dataprocessor.idx + self.dataprocessor.index)
+        self.infos.append(info)
+
+        return observation, reward, done1 or done2, info
         
     def step(self, action):
 
