@@ -82,6 +82,7 @@ class backtestor(object):
             CR.append(wealth)
             observation =  creator.create_obs(observation)
             i+=1
+        self.env.render()
         return CR
 
 
@@ -105,7 +106,57 @@ class backtestor(object):
             wealth=wealth*math.exp(r)
             CR.append(wealth)
             observation =  creator.create_obs(observation)
+        self.env.render()
         return CR
+    
+    def backtest_SAC(self):
+        creator = obs_creator(self.config.norm_method,self.config.norm_type)
+        observation, info = self.env.reset()
+        observation = creator.create_obs(observation)
+        done = False
+        ep_reward = 0
+        wealth = self.config.wealth
+        # Collect culmulative return
+        CR = []
+        while not done:
+            observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
+            with torch.no_grad():
+                action, _ = self.actor.sample(observation)
+                action = action.cpu().numpy().flatten()
+            observation, reward, done, _ = self.env.step(action)
+            ep_reward += reward
+            r = info['log_return']
+            wealth=wealth*math.exp(r)
+            CR.append(wealth)
+            observation =  creator.create_obs(observation)
+        self.env.render()
+        return CR
+    
+    def backtest_PPO(self):
+        creator = obs_creator(self.config.norm_method,self.config.norm_type)
+        observation, info = self.env.reset()
+        observation = creator.create_obs(observation)
+        done = False
+        ep_reward = 0
+        wealth = self.config.wealth
+        # Collect culmulative return
+        CR = []
+        while not done:
+            observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
+            with torch.no_grad():
+                action, action_log_prob = self.actor.get_action(observation)
+                action = np.squeeze(action)
+                action = action.detach().cpu().numpy()
+            observation, reward, done, _ = self.env.step(action)
+            ep_reward += reward
+            r = info['log_return']
+            wealth=wealth*math.exp(r)
+            CR.append(wealth)
+            observation =  creator.create_obs(observation)
+        self.env.render()
+        return CR
+
+
 
     def backtest_DDPG(self):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
@@ -125,6 +176,7 @@ class backtestor(object):
             wealth=wealth*math.exp(r)
             CR.append(wealth)
             observation =  creator.create_obs(observation)
+        self.env.render()
         return CR
 
     def backtest_QFPIS(self):
@@ -157,7 +209,8 @@ class backtestor(object):
             CR.append(wealth)
             ep_reward += reward
             observation = creator.create_obs(observation)
-        return actions, weights, CR
+        self.env.render()
+        return CR
     
     def backtest(self, model_type):
         backtest_func = getattr(self, f'backtest_{model_type}', None)

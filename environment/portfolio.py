@@ -30,10 +30,10 @@ class Portfolio(object):
 
         dw1 = (y1 * w1) / (np.dot(y1, w1) + eps)  # (eq7) weights evolve into
 
-        if self.mode == "Test" and reset == 1:
-            mu1 = self.cost * (np.abs(w1[1:])).sum()
-        else:
-            mu1 = self.cost * (np.abs(dw1[1:] - w1[1:])).sum()
+        # if self.mode == "Test" and reset == 1:
+        #     mu1 = self.cost * (np.abs(w1[1:])).sum()
+        # else:
+        mu1 = self.cost * (np.abs(dw1[1:] - w1[1:])).sum()
             
         assert mu1 < 1.0, 'Cost is larger than current holding'
 

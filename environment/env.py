@@ -20,7 +20,7 @@ from data_provider.data_factory import data_provider
 from api_types import GlobalConfig, AgentProps
 from environment.portfolio import Portfolio
 from environment.data import DataProcessor, date_to_index, index_to_date
-from utils.evals import sharpe, max_drawdown
+from utils.evals import sharpe, max_drawdown,annualized_sharpe_ratio
 
 eps = 1e-8
 
@@ -103,7 +103,7 @@ class envs(gym.Env):
         df_info['date'] = pd.to_datetime(df_info['date'], format='%Y-%m-%d')
         df_info.set_index('date', inplace=True)
         mdd = max_drawdown(df_info.portfolio_value)
-        sharpe_ratio = sharpe(df_info.rate_of_return)
+        sharpe_ratio = annualized_sharpe_ratio(df_info.rate_of_return)
         print("Max drawdown", mdd)
         print("Sharpe ratio",sharpe_ratio)
         print("Final portfolio value", df_info["portfolio_value"][-1])

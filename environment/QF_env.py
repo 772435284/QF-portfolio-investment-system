@@ -19,7 +19,7 @@ from api_types import GlobalConfig, AgentProps
 from data_provider.data_factory import data_provider
 from environment.data import DataProcessor, date_to_index, index_to_date
 from environment.portfolio import Portfolio
-from utils.evals import sharpe, max_drawdown
+from utils.evals import sharpe, max_drawdown,annualized_sharpe_ratio
 
 eps = 1e-8
 
@@ -35,7 +35,7 @@ class envs(gym.Env):
         if self.mode == "Train":
             trading_cost = 0.0000
         elif self.mode == "Test":
-            trading_cost = 0.0025
+            trading_cost = 0.025
         self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode)
         self.combined_nqpr = self.dataprocessor.get_nqpr()
         self.qpl_level = config.qpl_level
