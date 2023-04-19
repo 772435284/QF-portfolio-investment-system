@@ -2,7 +2,7 @@
 model_name: 'PPO'
 mode: 'Train'
 use_cuda: True
-data_dir: 'new_data'
+data_dir: 'forex_data'
 ddpg_model_dir: 'breakpoint/ddpg'
 pga_model_dir: 'models_pga'
 baseline_dir: 'breakpoint/baseline'

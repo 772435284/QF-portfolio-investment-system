@@ -205,4 +205,4 @@ class PPO:
                     print('Episode: {:d}, Reward: {:.2f}'.format(i, episode_reward))
                     break
         print('Finish.')
-        torch.save(self.actor.state_dict(), path_join(self.config.baseline_dir, self.current_agent.name))
+        torch.save(self.actor.state_dict(), path_join(self.config.baseline_dir, f'{self.current_agent.name}_{self.config.data_dir}'))

@@ -15,7 +15,7 @@ from utils.utils import normalize,load_observations
 from tools.ddpg.ornstein_uhlenbeck import OrnsteinUhlenbeckActionNoise
 from models.DDPG import Actor
 from models.QFPIS import Policy
-from environment.env import envs
+from environment.selection_env import envs
 from typing import Callable, List, cast, OrderedDict
 from backtestor import backtestor
 from models.OLMAR import OLMAR
@@ -60,5 +60,32 @@ weights = np.insert(weights, 0, remaining_fund, axis=1)
 env = envs(config)
 backtestor = backtestor(env, OrnsteinUhlenbeckActionNoise, device, config)
 
-CR = backtestor.backtest_selection(weights)
-print(CR)
+
+results = [backtestor.backtest_selection(weights) for _ in range(config.backtest_number)]
+CRs, SRs, MDDs, FPVs,CRRs, ARs, AVs = map(np.array, zip(*results))
+print("\n")
+print(f"Print final metric for {config.backtest_number} times backtest:" )
+print("CR: ", CRs.mean(axis=0))
+print("SR: ", SRs.mean())
+print("MDD: ", MDDs.mean())
+print("FPV: ", FPVs.mean())
+print("CRR: ", CRRs.mean())
+print("AR: ", ARs.mean())
+print("AV: ", AVs.mean())
+
+# 将结果存储为一个字典
+results_dict = {
+                'SR': SRs.mean(),
+                'MDD': MDDs.mean(),
+                'FPV': FPVs.mean(),
+                'CRR': CRRs.mean(),
+                'AR': ARs.mean(),
+                'AV': AVs.mean()
+                }
+
+# 创建一个 DataFrame 对象
+results_df = pd.DataFrame(results_dict.items(), columns=['metric', 'value'])
+agent_index = cast(int, config.use_agents)
+current_agent = AgentProps(config.agent_list[agent_index])
+# 将 DataFrame 写入 csv 文件
+results_df.to_csv(f'backtest_result/{current_agent.name}_{config.data_dir}_results.csv', index=False)

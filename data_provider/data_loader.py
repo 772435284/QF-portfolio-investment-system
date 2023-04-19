@@ -50,6 +50,7 @@ class Dataset_Custom(object):
 
         # 将读取到的数据添加到合并后的数组中
         for idx, data in enumerate(data_list):
+            
             combined_data[:, :, idx] = data.values
         # 输入数据默认日期为倒序，因此需要将其反转
 
@@ -76,6 +77,7 @@ class Dataset_Custom(object):
         # 获取数据的shape并初始化一个空的数组来存储合并后的数据
         data_shape = data_list[0].shape
         combined_data = np.zeros((data_shape[0], data_shape[1], len(self.product_list)))
+        
 
         # 将读取到的数据添加到合并后的数组中
         for idx, data in enumerate(data_list):

@@ -80,8 +80,8 @@ class envs(gym.Env):
         groud_truth = np.concatenate((c_groud_truth, groud_truth), axis=0)
 
         # Obtain the price vector
-        close_price_vector = groud_truth[:, -1, 3]
-        open_price_vector = groud_truth[:, -1, 0]
+        close_price_vector = observation[:, -1, 3]
+        open_price_vector = observation[:, -1, 0]
 
         reset = 0
         y1 = close_price_vector/open_price_vector

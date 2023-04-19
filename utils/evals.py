@@ -30,3 +30,13 @@ def max_drawdown(return_list):
         return 0
     j = np.argmax(return_list[:i]) 
     return (return_list[j] - return_list[i]) / (return_list[j])
+
+def annualized_return(daily_returns):
+    total_return = np.prod(1 + daily_returns) - 1
+    years = len(daily_returns) / 252   # 假设一年有252个交易日
+    annualized_return = (1 + total_return) ** (1 / years) - 1
+    return annualized_return * 100
+
+def annual_volatility(daily_returns):
+    annual_vol = np.std(daily_returns) * np.sqrt(252)
+    return annual_vol * 100

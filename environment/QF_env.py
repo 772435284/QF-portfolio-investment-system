@@ -19,7 +19,7 @@ from api_types import GlobalConfig, AgentProps
 from data_provider.data_factory import data_provider
 from environment.data import DataProcessor, date_to_index, index_to_date
 from environment.portfolio import Portfolio
-from utils.evals import sharpe, max_drawdown,annualized_sharpe_ratio
+from utils.evals import sharpe, max_drawdown,annualized_sharpe_ratio,annualized_return,annual_volatility
 
 eps = 1e-8
 
@@ -125,7 +125,14 @@ class envs(gym.Env):
         df_info.set_index('date', inplace=True)
         mdd = max_drawdown(df_info.portfolio_value)
         sharpe_ratio = sharpe(df_info.rate_of_return)
+        a_return = annualized_return(df_info.rate_of_return)
+        a_volatility = annual_volatility(df_info.rate_of_return)
+        culmulative_return = ((df_info.portfolio_value[-1] - df_info.portfolio_value[0]) / df_info.portfolio_value[0])*100
         print("Max drawdown", mdd)
         print("Sharpe ratio",sharpe_ratio)
+        print("annualized return",a_return)
+        print("annualized volatility",a_volatility)
+        print("culmulative return",culmulative_return,"%")
         print("Final portfolio value", df_info["portfolio_value"][-1])
-        return sharpe_ratio , mdd, df_info["portfolio_value"][-1]
+
+        return sharpe_ratio , mdd, df_info["portfolio_value"][-1],culmulative_return, a_return, a_volatility
