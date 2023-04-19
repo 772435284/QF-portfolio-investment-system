@@ -35,7 +35,7 @@ class envs(gym.Env):
         if self.mode == "Train":
             trading_cost = 0.0000
         elif self.mode == "Test":
-            trading_cost = 0.025
+            trading_cost = 0.0025
         self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode)
         self.combined_nqpr = self.dataprocessor.get_nqpr()
         self.qpl_level = config.qpl_level

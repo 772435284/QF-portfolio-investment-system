@@ -15,6 +15,8 @@ from utils.utils import normalize,load_observations
 from tools.ddpg.ornstein_uhlenbeck import OrnsteinUhlenbeckActionNoise
 import models.DDPG as DDPG
 import models.A2C as A2C
+import models.PPO as PPO
+import models.SAC as SAC
 import models.QFPIS as QFPIS
 from models.QFPIS import Policy
 from environment.env import envs
@@ -24,7 +26,10 @@ from observation.obs_creator import obs_creator
 MODEL_DICT = {
     "A2C": A2C,
     "DDPG": DDPG,
-    "QFPIS": QFPIS
+    "QFPIS": QFPIS,
+    "PPO": PPO,
+    "SAC": SAC
+
     # "OtherModel": OtherModelClass
 }
 
@@ -127,7 +132,7 @@ class backtestor(object):
             with torch.no_grad():
                 action, _ = self.actor.sample(observation)
                 action = action.cpu().numpy().flatten()
-            observation, reward, done, _ = self.env.step(action)
+            observation, reward, done, info = self.env.step(action)
             ep_reward += reward
             r = info['log_return']
             wealth=wealth*math.exp(r)
@@ -151,7 +156,7 @@ class backtestor(object):
                 action, action_log_prob = self.actor.get_action(observation)
                 action = np.squeeze(action)
                 action = action.detach().cpu().numpy()
-            observation, reward, done, _ = self.env.step(action)
+            observation, reward, done, info = self.env.step(action)
             ep_reward += reward
             r = info['log_return']
             wealth=wealth*math.exp(r)

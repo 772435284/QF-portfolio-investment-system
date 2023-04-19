@@ -41,7 +41,7 @@ class envs(gym.Env):
         self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode)
         
     def selection_step(self, weights):
-        observation, done1, = self.dataprocessor._step()
+        observation, done1,_ = self.dataprocessor._step()
 
         # Connect 1, no risk asset to the portfolio
         c_observation = np.ones((1, self.window_length, observation.shape[2]))

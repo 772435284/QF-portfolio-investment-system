@@ -28,7 +28,7 @@ MODEL_DICT = {
 
 # Parse command line arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="A2C", help='baseline_model_name')
+parser.add_argument('--model', type=str, default="PPO", help='baseline_model_name')
 args = parser.parse_args()
 
 # Load configuration
