@@ -63,6 +63,74 @@ class factor_lib(object):
 
         return rsi_values
 
+
+    def cal_KDJ(self, observation, n=9, m1=3, m2=3):
+        stock_data = observation
+        days, attributes, num_products = stock_data.shape
+        kdj_values = np.zeros((days, 1, num_products))
+
+        for product in range(num_products):
+            highest_high = np.zeros(days)
+            lowest_low = np.zeros(days)
+            rsv = np.zeros(days)
+            k = np.zeros(days)
+            d = np.zeros(days)
+            j = np.zeros(days)
+
+            for i in range(days):
+                start_idx = max(0, i - n + 1)
+                high_values = stock_data[start_idx:i+1, 1, product]
+                low_values = stock_data[start_idx:i+1, 2, product]
+                close_value = stock_data[i, 3, product]
+                
+                highest_high[i] = np.max(high_values)
+                lowest_low[i] = np.min(low_values)
+
+                if highest_high[i] == lowest_low[i]:
+                    rsv[i] = 0
+                else:
+                    rsv[i] = (close_value - lowest_low[i]) / (highest_high[i] - lowest_low[i]) * 100
+                
+                if i == 0:
+                    k[i] = rsv[i]
+                    d[i] = k[i]
+                else:
+                    k[i] = (1 - 1/m1) * k[i-1] + rsv[i] / m1
+                    d[i] = (1 - 1/m2) * d[i-1] + k[i] / m2
+
+                j[i] = 3 * k[i] - 2 * d[i]
+                kdj_values[i, 0, product] = j[i]
+
+        return kdj_values
+    
+    def cal_WILLR(observation, n=14):
+        stock_data = observation
+        days, attributes, num_products = stock_data.shape
+        willr_values = np.zeros((days, 1, num_products))
+
+        for product in range(num_products):
+            highest_high = np.zeros(days)
+            lowest_low = np.zeros(days)
+            willr = np.zeros(days)
+
+            for i in range(days):
+                start_idx = max(0, i - n + 1)
+                high_values = stock_data[start_idx:i+1, 1, product]
+                low_values = stock_data[start_idx:i+1, 2, product]
+                close_value = stock_data[i, 3, product]
+
+                highest_high[i] = np.max(high_values)
+                lowest_low[i] = np.min(low_values)
+
+                if highest_high[i] == lowest_low[i]:
+                    willr[i] = 0
+                else:
+                    willr[i] = (highest_high[i] - close_value) / (highest_high[i] - lowest_low[i]) * -100
+
+                willr_values[i, 0, product] = willr[i]
+
+        return willr_values
+
     def create_factor(self, observation):
         factors = [observation]
         for f in self.factor:

@@ -128,3 +128,4 @@ class envs(gym.Env):
         print("Max drawdown", mdd)
         print("Sharpe ratio",sharpe_ratio)
         print("Final portfolio value", df_info["portfolio_value"][-1])
+        return sharpe_ratio , mdd, df_info["portfolio_value"][-1]

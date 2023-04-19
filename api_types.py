@@ -58,6 +58,7 @@ class GlobalConfig(DictLikeObject):
 
 	# 模拟回测参数
 	wealth: float
+	backtest_number: int
 
 	# 回测核心参数
 	gm_strategy_id: str

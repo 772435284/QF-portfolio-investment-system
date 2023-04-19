@@ -26,5 +26,11 @@ backtestor = backtestor(env, OrnsteinUhlenbeckActionNoise, device, config)
 backtestor.load_actor("QFPIS",isbaseline=False)
 backtestor.load_policy(action_size=config.qpl_level+1)
 
-CR = backtestor.backtest("QFPIS")
-print(CR)
+results = [backtestor.backtest("QFPIS") for _ in range(config.backtest_number)]
+CRs, SRs, MDDs, FPVs = map(np.array, zip(*results))
+print("CR: ", CRs.mean(axis=0))
+print("SR: ", SRs.mean())
+print("MDD: ", MDDs.mean())
+print("FPV: ", FPVs.mean())
+
+    

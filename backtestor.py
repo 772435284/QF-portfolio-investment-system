@@ -209,8 +209,8 @@ class backtestor(object):
             CR.append(wealth)
             ep_reward += reward
             observation = creator.create_obs(observation)
-        self.env.render()
-        return CR
+        SR, MDD, FPV = self.env.render()
+        return CR, SR , MDD, FPV
     
     def backtest(self, model_type):
         backtest_func = getattr(self, f'backtest_{model_type}', None)
