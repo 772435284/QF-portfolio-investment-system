@@ -103,7 +103,7 @@ class factor_lib(object):
 
         return kdj_values
     
-    def cal_WILLR(observation, n=14):
+    def cal_WILLR(self, observation, n=14):
         stock_data = observation
         days, attributes, num_products = stock_data.shape
         willr_values = np.zeros((days, 1, num_products))
