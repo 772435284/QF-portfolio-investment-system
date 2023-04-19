@@ -1,6 +1,6 @@
 # 通用参数
 model_name: 'A2C'
-mode: 'Test'
+mode: 'Train'
 use_cuda: True
 data_dir: 'forex_data'
 ddpg_model_dir: 'breakpoint/ddpg'
@@ -8,6 +8,10 @@ pga_model_dir: 'models_pga'
 baseline_dir: 'breakpoint/baseline'
 factor:
 - 'price_return'
+- 'RSI'
+- 'MACD'
+- 'KDJ'
+- 'WILLR'
 market_feature:
 - 'Open'
 - 'High'

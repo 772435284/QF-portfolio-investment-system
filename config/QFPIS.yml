@@ -1,6 +1,6 @@
 # 通用参数
 model_name: 'QFPIS'
-mode: 'Test'
+mode: 'Train'
 use_cuda: True
 data_dir: 'forex_data'
 ddpg_model_dir: 'breakpoint/QFPIS'

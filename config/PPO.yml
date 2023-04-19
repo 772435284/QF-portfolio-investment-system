@@ -8,6 +8,10 @@ pga_model_dir: 'models_pga'
 baseline_dir: 'breakpoint/baseline'
 factor:
 - 'price_return'
+- 'RSI'
+- 'MACD'
+- 'KDJ'
+- 'WILLR'
 market_feature:
 - 'Open'
 - 'High'
