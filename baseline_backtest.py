@@ -58,6 +58,7 @@ print("AV: ", AVs.mean())
 
 # 将结果存储为一个字典
 results_dict = {
+            'CR': CRs.mean(axis=0),
                 'SR': SRs.mean(),
                 'MDD': MDDs.mean(),
                 'FPV': FPVs.mean(),
