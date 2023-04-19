@@ -18,7 +18,7 @@ market_feature:
 - 'Low'
 - 'Close'
 agent_list:
-  - name: 'QFPIS_QPL_2_fix_truth'
+  - name: 'QFPIS'
     product_list:
       - 'AUDCAD'
       - 'AUDUSD'
@@ -64,7 +64,7 @@ gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
 use_qpl: True
 norm_method: 'z_score'
 norm_type: 'rolling'
-qpl_level: 2
+qpl_level: 1
 window_size: 3
 episode: 100
 max_step: 1000

@@ -271,4 +271,4 @@ class SAC:
                     print('Episode: {:d}, Reward: {:.2f}'.format(i, ep_reward))
                     break
         print('Finish.')
-        torch.save(self.actor.state_dict(), path_join(self.config.baseline_dir, f'{self.current_agent.name}_{self.config.data_dir}'))
+        torch.save(self.actor.state_dict(), path_join(self.config.baseline_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))

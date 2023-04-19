@@ -379,5 +379,5 @@ class QFPIS(object):
             policy_loss = self.policy_learn(eps)
             writer.add_scalar('Policy Loss', policy_loss, global_step=i)
         print('Finish.')
-        torch.save(self.actor.state_dict(), path_join(self.config.ddpg_model_dir, f'{self.current_agent.name}_{self.config.data_dir}'))
-        torch.save(self.policy.state_dict(), path_join(self.config.pga_model_dir, f'{self.current_agent.name}_{self.config.data_dir}'))
+        torch.save(self.actor.state_dict(), path_join(self.config.ddpg_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
+        torch.save(self.policy.state_dict(), path_join(self.config.pga_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))

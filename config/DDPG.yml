@@ -59,7 +59,7 @@ use_agents: 0
 gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
 norm_method: 'z_score'
 norm_type: 'rolling'
-qpl_level: 2
+qpl_level: 0
 window_size: 3
 episode: 100
 max_step: 1000

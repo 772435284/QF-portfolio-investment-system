@@ -82,8 +82,8 @@ class backtestor(object):
             CR.append(wealth)
             observation =  creator.create_obs(observation)
             i+=1
-        self.env.render()
-        return CR
+        SR, MDD, FPV, CRR, AR, AV = self.env.render()
+        return CR, SR , MDD, FPV, CRR, AR, AV
 
 
     def backtest_A2C(self):
@@ -106,8 +106,8 @@ class backtestor(object):
             wealth=wealth*math.exp(r)
             CR.append(wealth)
             observation =  creator.create_obs(observation)
-        self.env.render()
-        return CR
+        SR, MDD, FPV, CRR, AR, AV = self.env.render()
+        return CR, SR , MDD, FPV, CRR, AR, AV
     
     def backtest_SAC(self):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
@@ -129,8 +129,8 @@ class backtestor(object):
             wealth=wealth*math.exp(r)
             CR.append(wealth)
             observation =  creator.create_obs(observation)
-        self.env.render()
-        return CR
+        SR, MDD, FPV, CRR, AR, AV = self.env.render()
+        return CR, SR , MDD, FPV, CRR, AR, AV
     
     def backtest_PPO(self):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
@@ -153,8 +153,8 @@ class backtestor(object):
             wealth=wealth*math.exp(r)
             CR.append(wealth)
             observation =  creator.create_obs(observation)
-        self.env.render()
-        return CR
+        SR, MDD, FPV, CRR, AR, AV = self.env.render()
+        return CR, SR , MDD, FPV, CRR, AR, AV
 
 
 
@@ -176,8 +176,8 @@ class backtestor(object):
             wealth=wealth*math.exp(r)
             CR.append(wealth)
             observation =  creator.create_obs(observation)
-        self.env.render()
-        return CR
+        SR, MDD, FPV, CRR, AR, AV = self.env.render()
+        return CR, SR , MDD, FPV, CRR, AR, AV
 
     def backtest_QFPIS(self):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
@@ -209,8 +209,8 @@ class backtestor(object):
             CR.append(wealth)
             ep_reward += reward
             observation = creator.create_obs(observation)
-        SR, MDD, FPV = self.env.render()
-        return CR, SR , MDD, FPV
+        SR, MDD, FPV, CRR, AR, AV = self.env.render()
+        return CR, SR , MDD, FPV, CRR, AR, AV
     
     def backtest(self, model_type):
         backtest_func = getattr(self, f'backtest_{model_type}', None)
