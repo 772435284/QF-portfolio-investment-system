@@ -54,15 +54,19 @@ class backtestor(object):
     def load_actor(self, model_type, isbaseline=True):
         model_class = MODEL_DICT.get(model_type)
         self.actor = model_class.Actor(product_num=self.product_num,win_size=self.window_size,num_features=self.num_features).to(self.device)
+        agent_index = cast(int, self.config.use_agents)
+        current_agent = AgentProps(self.config.agent_list[agent_index])
         if isbaseline:
-            self.actor.load_state_dict(torch.load(path_join(self.config.baseline_dir, AgentProps(self.config.agent_list[self.agent_index]).name )))
+            self.actor.load_state_dict(torch.load(path_join(self.config.baseline_dir, f'{current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}')))
         else:
-            self.actor.load_state_dict(torch.load(path_join(self.config.ddpg_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name )))
+            self.actor.load_state_dict(torch.load(path_join(self.config.ddpg_model_dir, f'{current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}')))
         
 
     def load_policy(self,action_size):
+        agent_index = cast(int, self.config.use_agents)
+        current_agent = AgentProps(self.config.agent_list[agent_index])
         self.policy = Policy(product_num = self.product_num, win_size = self.window_size,num_features=self.num_features, action_size = action_size).to(self.device)
-        self.policy.load_state_dict(torch.load(path_join(self.config.pga_model_dir, AgentProps(self.config.agent_list[self.agent_index]).name)))
+        self.policy.load_state_dict(torch.load(path_join(self.config.pga_model_dir, f'{current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}')))
         
     def backtest_selection(self,weights):
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
