@@ -288,6 +288,8 @@ class QFPIS(object):
         moving_average_reward = 0
         writer = SummaryWriter(self.summary_path)
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
+        stop_tolerance = 0
+        last_max_q = float('-inf')
         # Main training loop
         for i in range(num_episode):
             previous_observation, _ = self.env.reset()
@@ -373,7 +375,18 @@ class QFPIS(object):
                     writer.add_scalar('Reward', ep_reward, global_step=i)
                     
                     print('Episode: {:d}, Reward: {:.2f}, Qmax: {:.4f}, Average reward: {:.8f}'.format(i, ep_reward, (ep_ave_max_q / float(j)),moving_average_reward))
+                    q_max = ep_ave_max_q / float(j)
                     break
+            if last_max_q <  q_max:
+                stop_tolerance = 0
+            else:
+                stop_tolerance += 1
+            print("Qmax:",q_max)
+            print("last_max_q:",last_max_q)
+            print(stop_tolerance)
+            last_max_q = q_max
+            if stop_tolerance >= self.config.tolerance and i>15:
+                break
             moving_average_reward = 0.05 * ep_reward + (1 - 0.05) * moving_average_reward
             writer.add_scalar('Moving average reward', moving_average_reward, global_step=i)
             policy_loss = self.policy_learn(eps)

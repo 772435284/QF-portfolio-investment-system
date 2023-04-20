@@ -55,6 +55,8 @@ class GlobalConfig(DictLikeObject):
 	dataset: str
 	norm_method: str
 	norm_type: str
+	# tolerance for early stopping
+	tolerance: int
 
 	# 模拟回测参数
 	wealth: float
