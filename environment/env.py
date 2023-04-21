@@ -36,6 +36,8 @@ class envs(gym.Env):
         self.dataprocessor = data_provider(config)
         if self.mode == "Train":
             trading_cost = 0.0000
+        elif self.mode == "Val":
+            trading_cost = 0.0025
         elif self.mode == "Test":
             trading_cost = 0.0025
         self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode)

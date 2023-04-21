@@ -87,16 +87,17 @@ train_start_date: '2014-03-21'
 train_end_date: '2020-10-14'
 date_format: '%Y-%m-%d'
 train_ratio: 0.8
-val_ratio: 0.0
+val_ratio: 0.1
 train_intermediate_dir: 'train_intermediate'
 is_summary : True
 summary_path: 'train_summary'
 dataset: 'custom'
 verbose: 0
+tolerance: 5
 
 # 模拟回测参数
 wealth: 10000
-backtest_number: 2
+backtest_number: 10
 
 # 回测核心参数
 gm_strategy_id: 'e896158a-c4e0-11eb-b4fa-d481d7a7eca1'

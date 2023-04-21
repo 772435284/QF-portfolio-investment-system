@@ -202,9 +202,10 @@ class backtestor(object):
         CR = []
         while not done:
             observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
-            action = self.actor(observation).squeeze(0).cpu().detach().numpy()
-            # Here is the code for the policy gradient
-            actions_prob = self.policy(observation)
+            with torch.no_grad():
+                action = self.actor(observation).squeeze(0).cpu().detach().numpy()
+                # Here is the code for the policy gradient
+                actions_prob = self.policy(observation)
             m = Categorical(actions_prob)
             # Selection action by sampling the action prob
             action_policy = m.sample()

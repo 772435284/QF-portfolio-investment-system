@@ -15,6 +15,7 @@ from torch.distributions import Categorical
 from utils.utils import hidden_init
 from tensorboardX import SummaryWriter
 from observation.obs_creator import obs_creator
+from environment.QF_env import envs
 
 
 # Define actor network
@@ -276,6 +277,44 @@ class QFPIS(object):
 
         return policy_loss
 
+    def validation(self):
+        self.config.mode = "Val"
+        self.env =  envs(self.config)
+        self.actor.eval()
+        self.policy.eval()
+        creator = obs_creator(self.config.norm_method,self.config.norm_type)
+        eps = 1e-8
+        actions = []
+        weights = []
+        observation, info = self.env.reset()
+        observation = creator.create_obs(observation)
+        done = False
+        ep_reward = 0
+        wealth = self.config.wealth
+        while not done:
+            observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
+            with torch.no_grad():
+                action = self.actor(observation).squeeze(0).cpu().detach().numpy()
+                actions_prob = self.policy(observation)
+            m = Categorical(actions_prob)
+            # Selection action by sampling the action prob
+            action_policy = m.sample()
+            actions.append(action_policy.cpu().numpy())
+            w1 = np.clip(action, 0, 1)  # np.array([cash_bias] + list(action))  # [w0, w1...]
+            w1 /= (w1.sum() + eps)
+            weights.append(w1)
+            observation, reward,policy_reward, done, info = self.env.step(action,action_policy)
+            ep_reward += reward
+            observation = creator.create_obs(observation)
+        SR, MDD, FPV, CRR, AR, AV = self.env.render()
+        self.config.mode = "Train"
+        self.env =  envs(self.config)
+        self.actor.train()
+        self.policy.train()
+        return FPV
+
+
+
 
     def train(self):
         num_episode = self.config.episode
@@ -289,7 +328,8 @@ class QFPIS(object):
         writer = SummaryWriter(self.summary_path)
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
         stop_tolerance = 0
-        last_max_q = float('-inf')
+        last_fpv = float('-inf')
+        all_fpv = [float('-inf')]
         # Main training loop
         for i in range(num_episode):
             previous_observation, _ = self.env.reset()
@@ -377,20 +417,28 @@ class QFPIS(object):
                     print('Episode: {:d}, Reward: {:.2f}, Qmax: {:.4f}, Average reward: {:.8f}'.format(i, ep_reward, (ep_ave_max_q / float(j)),moving_average_reward))
                     q_max = ep_ave_max_q / float(j)
                     break
-            if last_max_q <  q_max:
+            fpv = self.validation()
+            if last_fpv <  fpv:
                 stop_tolerance = 0
             else:
                 stop_tolerance += 1
-            print("Qmax:",q_max)
-            print("last_max_q:",last_max_q)
+            # Save the best model:
+            if fpv > max(all_fpv):
+                torch.save(self.actor.state_dict(), path_join(self.config.ddpg_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
+                torch.save(self.policy.state_dict(), path_join(self.config.pga_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
+                print("Best Model saved !!!")
+            print("FPV:",fpv)
+            print("last_FPV:",last_fpv)
+            print("max",max(all_fpv))
             print(stop_tolerance)
-            last_max_q = q_max
-            if stop_tolerance >= self.config.tolerance and i>15:
+            last_fpv = fpv
+            all_fpv.append(fpv)
+            if stop_tolerance >= self.config.tolerance:
                 break
             moving_average_reward = 0.05 * ep_reward + (1 - 0.05) * moving_average_reward
             writer.add_scalar('Moving average reward', moving_average_reward, global_step=i)
             policy_loss = self.policy_learn(eps)
             writer.add_scalar('Policy Loss', policy_loss, global_step=i)
         print('Finish.')
-        torch.save(self.actor.state_dict(), path_join(self.config.ddpg_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
-        torch.save(self.policy.state_dict(), path_join(self.config.pga_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
+        # torch.save(self.actor.state_dict(), path_join(self.config.ddpg_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
+        # torch.save(self.policy.state_dict(), path_join(self.config.pga_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))

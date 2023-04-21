@@ -15,6 +15,7 @@ from torch.distributions import Categorical
 from utils.utils import hidden_init
 from tensorboardX import SummaryWriter
 from observation.obs_creator import obs_creator
+from environment.env import envs
 
 
 class Actor(nn.Module):
@@ -167,11 +168,39 @@ class A2C:
 
         return actor_loss.item(), critic_loss.item()
 
+    def validation(self):
+        self.config.mode = "Val"
+        self.env =  envs(self.config)
+        self.actor.eval()
+        creator = obs_creator(self.config.norm_method,self.config.norm_type)
+        observation, info = self.env.reset()
+        observation = creator.create_obs(observation)
+        done = False
+        ep_reward = 0
+        while not done:
+            observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
+            action_probs = self.actor(observation)
+            with torch.no_grad():
+                action_probs = action_probs.cpu().numpy().squeeze()
+            observation, reward, done, info = self.env.step(action_probs)
+            ep_reward += reward
+            r = info['log_return']
+            observation =  creator.create_obs(observation)
+        SR, MDD, FPV, CRR, AR, AV = self.env.render()
+        self.config.mode = "Train"
+        self.env =  envs(self.config)
+        self.actor.train()
+        return FPV
+        
+
     def train(self):
         episode_rewards = []
         num_episode = self.config.episode
         creator = obs_creator(self.config.norm_method,self.config.norm_type)
         total_step = 0
+        stop_tolerance = 0
+        last_fpv = float('-inf')
+        all_fpv = [float('-inf')]
         for i in range(num_episode):
             previous_observation, _ = self.env.reset()
             previous_observation = creator.create_obs(previous_observation)
@@ -193,9 +222,25 @@ class A2C:
                     print('Episode: {:d}, Reward: {:.2f}'.format(i, episode_reward))
                     break
             episode_rewards.append(episode_reward)
-
+            fpv = self.validation()
+            if last_fpv <  fpv:
+                stop_tolerance = 0
+            else:
+                stop_tolerance += 1
+            # Save the best model:
+            if fpv > max(all_fpv):
+                torch.save(self.actor.state_dict(), path_join(self.config.baseline_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
+                print("Best Model saved !!!")
+            print("FPV:",fpv)
+            print("last_FPV:",last_fpv)
+            print("max",max(all_fpv))
+            print(stop_tolerance)
+            last_fpv = fpv
+            all_fpv.append(fpv)
+            if stop_tolerance >= self.config.tolerance:
+                break
         print('Finish.')
-        torch.save(self.actor.state_dict(), path_join(self.config.baseline_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
+        #torch.save(self.actor.state_dict(), path_join(self.config.baseline_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
         return episode_rewards
     
     
