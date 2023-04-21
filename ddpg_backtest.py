@@ -44,12 +44,12 @@ print("AV: ", AVs.mean())
 # 将结果存储为一个字典
 results_dict = {
             'CR': CRs.mean(axis=0),
+                'AR': ARs.mean(),
+                'CRR': CRRs.mean(),
                 'SR': SRs.mean(),
+                'AV': AVs.mean(),
                 'MDD': MDDs.mean(),
                 'FPV': FPVs.mean(),
-                'CRR': CRRs.mean(),
-                'AR': ARs.mean(),
-                'AV': AVs.mean()
                 }
 
 # 创建一个 DataFrame 对象
