@@ -20,6 +20,7 @@ from data_provider.data_factory import data_provider
 from environment.data import DataProcessor, date_to_index, index_to_date
 from environment.portfolio import Portfolio
 from utils.evals import sharpe, max_drawdown,annualized_sharpe_ratio,annualized_return,annual_volatility
+from typing import Callable, List, cast, OrderedDict
 
 eps = 1e-8
 
@@ -38,7 +39,10 @@ class envs(gym.Env):
             trading_cost = 0.0025
         elif self.mode == "Test":
             trading_cost = 0.0025
-        self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode)
+        agent_index = cast(int, config.use_agents)
+        self.current_agent = AgentProps(config.agent_list[agent_index])
+        product_num = len(self.current_agent.product_list)
+        self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode,num_assets=product_num)
         self.combined_nqpr = self.dataprocessor.get_nqpr()
         self.qpl_level = config.qpl_level
         self.action_size = config.qpl_level + 1

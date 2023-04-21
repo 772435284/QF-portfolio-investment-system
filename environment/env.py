@@ -21,6 +21,7 @@ from api_types import GlobalConfig, AgentProps
 from environment.portfolio import Portfolio
 from environment.data import DataProcessor, date_to_index, index_to_date
 from utils.evals import sharpe, max_drawdown,annualized_sharpe_ratio,annualized_return,annual_volatility
+from typing import Callable, List, cast, OrderedDict
 
 
 eps = 1e-8
@@ -40,7 +41,10 @@ class envs(gym.Env):
             trading_cost = 0.0025
         elif self.mode == "Test":
             trading_cost = 0.0025
-        self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode)
+        agent_index = cast(int, config.use_agents)
+        self.current_agent = AgentProps(config.agent_list[agent_index])
+        product_num = len(self.current_agent.product_list)
+        self.portfolio = Portfolio(steps=config.max_step,trading_cost=trading_cost, mode=config.mode,num_assets=product_num)
         
     def selection_step(self, weights):
         observation, done1, = self.dataprocessor._step()
