@@ -291,6 +291,9 @@ class QFPIS(object):
         done = False
         ep_reward = 0
         wealth = self.config.wealth
+        i = 0
+        plot_action = [[0.0]*10]
+        plot_action = np.array(plot_action)
         while not done:
             observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
             with torch.no_grad():
@@ -300,18 +303,22 @@ class QFPIS(object):
             # Selection action by sampling the action prob
             action_policy = m.sample()
             actions.append(action_policy.cpu().numpy())
+
+            if i == 9:
+                plot_action = action
             w1 = np.clip(action, 0, 1)  # np.array([cash_bias] + list(action))  # [w0, w1...]
             w1 /= (w1.sum() + eps)
             weights.append(w1)
             observation, reward,policy_reward, done, info = self.env.step(action,action_policy)
             ep_reward += reward
             observation = creator.create_obs(observation)
+            i += 1
         SR, MDD, FPV, CRR, AR, AV = self.env.render()
         self.config.mode = "Train"
         self.env =  envs(self.config)
         self.actor.train()
         self.policy.train()
-        return FPV
+        return FPV, plot_action, actions
 
 
 
@@ -330,8 +337,10 @@ class QFPIS(object):
         stop_tolerance = 0
         last_fpv = float('-inf')
         all_fpv = [float('-inf')]
+        all_plot_action = []
         # Main training loop
         for i in range(num_episode):
+            plot_policy_action = []
             previous_observation, _ = self.env.reset()
             # Normalization
             previous_observation = creator.create_obs(previous_observation)
@@ -346,8 +355,12 @@ class QFPIS(object):
         		# ================================================
                 
                 action = self.act(previous_observation)
+                
+                
 
                 action_policy = self.select_action(previous_observation)
+                if (i+1)  % 10 == 0:
+                    plot_policy_action.append(action_policy)
                 #print(action_policy)
                 # ================================================
         		# 2. Obtain reward rt and reach new state st+1
@@ -417,7 +430,13 @@ class QFPIS(object):
                     print('Episode: {:d}, Reward: {:.2f}, Qmax: {:.4f}, Average reward: {:.8f}'.format(i, ep_reward, (ep_ave_max_q / float(j)),moving_average_reward))
                     q_max = ep_ave_max_q / float(j)
                     break
-            fpv = self.validation()
+            plot_policy_action = np.array(plot_policy_action)
+            if (i+1)  % 10 == 0:
+                pd.DataFrame(plot_policy_action).to_csv('backtest_result/train_policy_actions/'+f"QFPIS_train_QPL_{self.config.qpl_level}_ep_{i+1}_action_record.csv", index=None)
+            fpv, plot_action,val_policy_action = self.validation()
+            all_plot_action.append(plot_action)
+            if (i+1)  % 10 == 0:
+                pd.DataFrame(val_policy_action).to_csv('backtest_result/val_policy_actions/'+f"QFPIS_val_QPL_{self.config.qpl_level}_ep_{i+1}_action_record.csv", index=None)
             if last_fpv <  fpv:
                 stop_tolerance = 0
             else:
@@ -439,6 +458,10 @@ class QFPIS(object):
             writer.add_scalar('Moving average reward', moving_average_reward, global_step=i)
             policy_loss = self.policy_learn(eps)
             writer.add_scalar('Policy Loss', policy_loss, global_step=i)
+        all_fpv = np.array(all_fpv)
+        all_plot_action = np.array(all_plot_action)
+        np.save(f'backtest_result/val_record_QPL_{self.config.qpl_level}', all_fpv)
+        np.save(f'backtest_result/plot_action_QPL_{self.config.qpl_level}', all_plot_action)
         print('Finish.')
         # torch.save(self.actor.state_dict(), path_join(self.config.ddpg_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
         # torch.save(self.policy.state_dict(), path_join(self.config.pga_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))

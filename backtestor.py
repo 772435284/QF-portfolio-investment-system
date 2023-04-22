@@ -220,6 +220,7 @@ class backtestor(object):
             ep_reward += reward
             observation = creator.create_obs(observation)
         SR, MDD, FPV, CRR, AR, AV = self.env.render()
+        pd.DataFrame(actions).to_csv('backtest_result/actions/'+f"QFPIS_QPL_{self.config.qpl_level}_action_record.csv", index=None)
         return CR, SR , MDD, FPV, CRR, AR, AV
     
     def backtest(self, model_type):
