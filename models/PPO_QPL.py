@@ -173,6 +173,7 @@ class PPO_QPL:
         self.env = env
         self.device = device
         self.num_features = len(config.factor)
+        self.action_size = config.qpl_level + 1
 
         self.actor = Actor(product_num, window_size, self.num_features).to(self.device)
         self.critic = Critic(product_num, window_size, self.num_features).to(self.device)
@@ -193,6 +194,48 @@ class PPO_QPL:
         os.makedirs(config.pga_model_dir, exist_ok=True)
         os.makedirs(config.baseline_dir, exist_ok=True)
         os.makedirs(self.summary_path, exist_ok=True)
+
+
+    # Here is the code for the policy gradient actor
+    def act(self, state):
+        state = torch.tensor(state, dtype=torch.float).unsqueeze(0).to(self.device)
+        # Get the probability distribution
+        #print(state)
+        probs = self.policy(state)
+        #print(probs)
+        m = Categorical(probs)
+        # Sample action from the distribution
+        action = m.sample()
+        self.policy.saved_log_probs.append(m.log_prob(action))
+        return action.item()
+
+    def policy_learn(self, eps):
+        R = 0
+        policy_loss = []
+        returns = []
+
+         # Reversed Traversal and calculate cumulative rewards for t to T
+        for r in self.policy.rewards[::-1]:
+            R = r + 0.95 * R # R: culumative rewards for t to T
+            returns.insert(0, R) # Evaluate the R and keep original order
+
+        returns = torch.tensor(returns).to(self.device)
+        # Normalized returns
+        returns = (returns - returns.mean()) / (returns.std() + eps)
+
+        # After one episode, update once
+        for log_prob, R in zip(self.policy.saved_log_probs, returns):
+            # Actual loss definition:
+            policy_loss.append(-log_prob * R)
+        self.policy_optim.zero_grad()
+        policy_loss = torch.cat(policy_loss).sum()
+        policy_loss.backward()
+        self.policy_optim.step()
+
+        del self.policy.rewards[:]
+        del self.policy.saved_log_probs[:]
+
+        return policy_loss
 
 
     def get_action(self, state):

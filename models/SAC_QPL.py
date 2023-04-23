@@ -208,6 +208,7 @@ class SAC_QPL:
         self.gamma = config.gamma
         self.tau = config.tau
         self.num_features = len(config.factor)
+        self.action_size = config.qpl_level + 1
         
         # Initialize Actor and Critic networks
         self.actor = Actor(product_num, window_size, self.num_features).to(self.device)
