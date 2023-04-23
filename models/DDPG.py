@@ -54,9 +54,12 @@ class Actor(nn.Module):
         fc2_out = self.linear2(fc1_out)
         fc2_out = F.relu(fc2_out)
         fc3_out = self.linear3(fc2_out)
-        fc3_out = F.softmax(fc3_out,dim=1)
+        fc3_out = torch.tanh(fc3_out)  # Replace Softmax with Tanh
+
+        # Normalize the output to ensure the sum of the holding ratios is 1
+        fc3_out_normalized = F.normalize(fc3_out, p=1, dim=1)
         
-        return fc3_out
+        return fc3_out_normalized
 
 
 # Define Critic network

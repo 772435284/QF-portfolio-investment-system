@@ -55,9 +55,12 @@ class Actor(nn.Module):
         fc2_out = self.linear2(fc1_out)
         fc2_out = F.relu(fc2_out)
         fc3_out = self.linear3(fc2_out)
-        fc3_out = F.softmax(fc3_out,dim=1)
+        fc3_out = torch.tanh(fc3_out)  # Replace Softmax with Tanh
+
+        # Normalize the output to ensure the sum of the holding ratios is 1
+        fc3_out_normalized = F.normalize(fc3_out, p=1, dim=1)
         
-        return fc3_out
+        return fc3_out_normalized
 
 # Define Critic network
 class Critic(nn.Module):
@@ -303,7 +306,7 @@ class QFPIS(object):
             # Selection action by sampling the action prob
             action_policy = m.sample()
             actions.append(action_policy.cpu().numpy())
-
+            #print(action)
             if i == 9:
                 plot_action = action
             w1 = np.clip(action, 0, 1)  # np.array([cash_bias] + list(action))  # [w0, w1...]
@@ -359,7 +362,7 @@ class QFPIS(object):
                 
 
                 action_policy = self.select_action(previous_observation)
-                if (i+1)  % 10 == 0:
+                if (i+1)  % 3 == 0:
                     plot_policy_action.append(action_policy)
                 #print(action_policy)
                 # ================================================
@@ -431,12 +434,12 @@ class QFPIS(object):
                     q_max = ep_ave_max_q / float(j)
                     break
             plot_policy_action = np.array(plot_policy_action)
-            if (i+1)  % 10 == 0:
-                pd.DataFrame(plot_policy_action).to_csv('backtest_result/train_policy_actions/'+f"QFPIS_train_QPL_{self.config.qpl_level}_ep_{i+1}_action_record.csv", index=None)
+            if (i+1)  % 3 == 0:
+                pd.DataFrame(plot_policy_action).to_csv('backtest_result/train_policy_actions/'+f"{self.current_agent.name}_train_QPL_{self.config.qpl_level}_ep_{i+1}_{self.config.data_dir}_action_record.csv", index=None)
             fpv, plot_action,val_policy_action = self.validation()
             all_plot_action.append(plot_action)
-            if (i+1)  % 10 == 0:
-                pd.DataFrame(val_policy_action).to_csv('backtest_result/val_policy_actions/'+f"QFPIS_val_QPL_{self.config.qpl_level}_ep_{i+1}_action_record.csv", index=None)
+            if (i+1)  % 3 == 0:
+                pd.DataFrame(val_policy_action).to_csv('backtest_result/val_policy_actions/'+f"{self.current_agent.name}_val_QPL_{self.config.qpl_level}_ep_{i+1}_{self.config.data_dir}_action_record.csv", index=None)
             if last_fpv <  fpv:
                 stop_tolerance = 0
             else:
@@ -460,8 +463,8 @@ class QFPIS(object):
             writer.add_scalar('Policy Loss', policy_loss, global_step=i)
         all_fpv = np.array(all_fpv)
         all_plot_action = np.array(all_plot_action)
-        np.save(f'backtest_result/val_record_QPL_{self.config.qpl_level}', all_fpv)
-        np.save(f'backtest_result/plot_action_QPL_{self.config.qpl_level}', all_plot_action)
+        np.save(f'backtest_result/{self.current_agent.name}_val_record_QPL_{self.config.qpl_level}_{self.config.data_dir}', all_fpv)
+        np.save(f'backtest_result/{self.current_agent.name}_plot_action_QPL_{self.config.qpl_level}_{self.config.data_dir}', all_plot_action)
         print('Finish.')
         # torch.save(self.actor.state_dict(), path_join(self.config.ddpg_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))
         # torch.save(self.policy.state_dict(), path_join(self.config.pga_model_dir, f'{self.current_agent.name}_QPL_{self.config.qpl_level}_{self.config.data_dir}'))

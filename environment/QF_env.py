@@ -54,7 +54,7 @@ class envs(gym.Env):
         weights = action
         weights /= (weights.sum() + eps)
         weights[0] += np.clip(1 - weights.sum(), 0, 1)
-
+        
         observation, done1, groud_truth = self.dataprocessor._step()
 
         # Connect 1, no risk asset to the portfolio
@@ -69,7 +69,6 @@ class envs(gym.Env):
         low_price_vector = groud_truth[:, -1 , 2]
         close_price_vector = groud_truth[:, -1, 3]
         # Price relative vector
-        
         combine_qpl = np.array([open_price_vector * self.combined_nqpr[:, i] for i in range(self.qpl_level)])
         
         reset = 0
