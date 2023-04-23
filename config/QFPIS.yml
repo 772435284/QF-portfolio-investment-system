@@ -18,7 +18,7 @@ market_feature:
 - 'Low'
 - 'Close'
 agent_list:
-  - name: 'QFPIS'
+  - name: 'QFPIS_new'
     product_list:
       - 'AUDCAD'
       - 'AUDUSD'
@@ -29,7 +29,7 @@ agent_list:
       - 'NZDCHF'
       - 'NZDUSD'
       - 'USDCHF'
-  - name: 'QFPIS'
+  - name: 'QFPIS_fine_tune'
     product_list:
       - 'AAPL'
       - 'GE'
@@ -40,7 +40,7 @@ agent_list:
       - 'MSFT'
       - 'V'
       - 'XOM'
-  - name: 'QFPIS'
+  - name: 'QFPIS_fine_tune'
     product_list:
       - '000002.SZ'
       - '002035.SZ'
@@ -72,7 +72,7 @@ gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
 use_qpl: True
 norm_method: 'z_score'
 norm_type: 'rolling'
-qpl_level: 1
+qpl_level: 3
 window_size: 3
 episode: 100
 max_step: 1000
@@ -93,7 +93,7 @@ is_summary : True
 summary_path: 'train_summary'
 dataset: 'custom'
 verbose: 0
-tolerance: 5
+tolerance: 10
 
 # 模拟回测参数
 wealth: 10000

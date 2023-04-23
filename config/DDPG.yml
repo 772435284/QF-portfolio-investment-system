@@ -1,6 +1,6 @@
 # 通用参数
 model_name: 'DDPG'
-mode: 'Train'
+mode: 'Test'
 use_cuda: True
 data_dir: 'forex_data'
 ddpg_model_dir: 'breakpoint/ddpg'
@@ -92,7 +92,7 @@ is_summary : True
 summary_path: 'train_summary'
 dataset: 'custom'
 verbose: 0
-tolerance: 5
+tolerance: 10
 
 # 模拟回测参数
 wealth: 10000

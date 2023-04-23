@@ -1,10 +1,10 @@
 # 通用参数
-model_name: 'A2C'
-mode: 'Test'
+model_name: 'A2C_QPL'
+mode: 'Train'
 use_cuda: True
-data_dir: 'US_stock'
-ddpg_model_dir: 'breakpoint/ddpg'
-pga_model_dir: 'models_pga'
+data_dir: 'forex_data'
+ddpg_model_dir: 'breakpoint/A2C_QPL'
+pga_model_dir: 'breakpoint/A2C_QPL_pga'
 baseline_dir: 'breakpoint/baseline'
 factor:
 - 'price_return'
@@ -18,7 +18,7 @@ market_feature:
 - 'Low'
 - 'Close'
 agent_list:
-  - name: 'A2C'
+  - name: 'A2C_QPL'
     product_list:
       - 'AUDCAD'
       - 'AUDUSD'
@@ -29,7 +29,7 @@ agent_list:
       - 'NZDCHF'
       - 'NZDUSD'
       - 'USDCHF'
-  - name: 'A2C'
+  - name: 'A2C_QPL'
     product_list:
       - 'AAPL'
       - 'GE'
@@ -40,7 +40,7 @@ agent_list:
       - 'MSFT'
       - 'V'
       - 'XOM'
-  - name: 'A2C'
+  - name: 'A2C_QPL'
     product_list:
       - '000002.SZ'
       - '002035.SZ'
@@ -65,13 +65,14 @@ agent_list:
       - 'SHSE.600188'
       - 'SHSE.601225'
       - 'SHSE.601088'
-use_agents: 1
+use_agents: 0
 
 # 模型训练参数
 gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
+use_qpl: True
 norm_method: 'z_score'
 norm_type: 'rolling'
-qpl_level: 0
+qpl_level: 1
 window_size: 3
 episode: 100
 max_step: 1000
@@ -81,12 +82,12 @@ tau: 0.001
 gamma: 0.99
 actor_learning_rate: 0.0001
 critic_learning_rate: 0.001
-policy_learning_rate:  0.0001
+policy_learning_rate: 0.0001
 train_start_date: '2014-03-21'
 train_end_date: '2020-10-14'
+date_format: '%Y-%m-%d'
 train_ratio: 0.8
 val_ratio: 0.1
-date_format: '%Y-%m-%d'
 train_intermediate_dir: 'train_intermediate'
 is_summary : True
 summary_path: 'train_summary'

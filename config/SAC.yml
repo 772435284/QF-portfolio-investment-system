@@ -1,8 +1,8 @@
 # 通用参数
 model_name: 'SAC'
-mode: 'Train'
+mode: 'Test'
 use_cuda: True
-data_dir: 'forex_data'
+data_dir: 'China_stock'
 ddpg_model_dir: 'breakpoint/ddpg'
 pga_model_dir: 'models_pga'
 baseline_dir: 'breakpoint/baseline'
@@ -65,7 +65,7 @@ agent_list:
       - 'SHSE.600188'
       - 'SHSE.601225'
       - 'SHSE.601088'
-use_agents: 0
+use_agents: 2
 
 # 模型训练参数
 gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
@@ -92,7 +92,7 @@ is_summary : True
 summary_path: 'train_summary'
 dataset: 'custom'
 verbose: 0
-tolerance: 5
+tolerance: 10
 
 # 模拟回测参数
 wealth: 10000
