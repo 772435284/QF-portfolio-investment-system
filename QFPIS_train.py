@@ -9,11 +9,15 @@ from environment.QF_env import envs
 from tools.ddpg.ornstein_uhlenbeck import OrnsteinUhlenbeckActionNoise
 from models.QFPIS import QFPIS
 from models.A2C_QPL import A2C_QPL
+from models.PPO_QPL import PPO_QPL
+from models.SAC_QPL import SAC_QPL
 
 # Add more models here
 MODEL_DICT = {
     "QFPIS": QFPIS,
     "A2C_QPL": A2C_QPL,
+    "PPO_QPL": PPO_QPL,
+    "SAC_QPL": SAC_QPL,
     # "OtherModel": OtherModelClass
 }
 
