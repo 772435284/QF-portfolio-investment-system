@@ -163,7 +163,7 @@ class A2C_QPL(object):
         self.actor = Actor(product_num, window_size, self.num_features).to(self.device)
         self.critic = Critic(product_num, window_size, self.num_features).to(self.device)
         self.policy = Policy(product_num, window_size, self.num_features,self.action_size).to(self.device)
-        self.policy_optim = optim.Adam(self.policy.parameters(), lr=1e-4)
+        self.policy_optim = optim.Adam(self.policy.parameters(), lr=self.config.policy_learning_rate)
         self.optimizer_actor = optim.Adam(self.actor.parameters(), lr = self.config.actor_learning_rate)
         self.optimizer_critic = optim.Adam(self.critic.parameters(), lr = self.config.critic_learning_rate)
         self.gamma = config.gamma

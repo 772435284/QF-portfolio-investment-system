@@ -16,7 +16,27 @@ from utils.utils import hidden_init
 from tensorboardX import SummaryWriter
 from observation.obs_creator import obs_creator
 from environment.QF_env import envs
+import math
+from torch.optim.lr_scheduler import _LRScheduler
 
+
+
+class CosineScheduleWithWarmup(_LRScheduler):
+    def __init__(self, optimizer, warmup_steps, total_steps, num_cycles=0.5, last_epoch=-1):
+        self.warmup_steps = warmup_steps
+        self.total_steps = total_steps
+        self.num_cycles = num_cycles
+        super(CosineScheduleWithWarmup, self).__init__(optimizer, last_epoch)
+
+    def get_lr(self):
+        step = self.last_epoch
+        if step < self.warmup_steps:
+            progress = float(step) / float(max(1, self.warmup_steps))
+            return [base_lr * progress for base_lr in self.base_lrs]
+        else:
+            progress = float(step - self.warmup_steps) / float(max(1, self.total_steps - self.warmup_steps))
+            return [base_lr * (1 + math.cos(math.pi * self.num_cycles * progress)) / 2
+                    for base_lr in self.base_lrs]
 
 # Define actor network
 class Actor(nn.Module):
@@ -192,7 +212,7 @@ class QFPIS(object):
         # Here is the code for the policy-gradeint
         
         self.policy = Policy(product_num, window_size, self.num_features,self.action_size).to(self.device)
-        self.policy_optim = optim.Adam(self.policy.parameters(), lr=1e-4)
+        self.policy_optim = optim.Adam(self.policy.parameters(), lr=self.config.policy_learning_rate)
         
         self.actor.reset_parameters()
         self.actor_target.reset_parameters()
@@ -202,6 +222,10 @@ class QFPIS(object):
         self.actor_optim = optim.Adam(self.actor.parameters(), lr = self.config.actor_learning_rate)
         self.critic_optim = optim.Adam(self.critic.parameters(), lr = self.config.critic_learning_rate)
         
+        self.actor_scheduler = CosineScheduleWithWarmup(self.actor_optim, warmup_steps=10, total_steps=self.config.episode)
+        self.critic_scheduler = CosineScheduleWithWarmup(self.critic_optim, warmup_steps=10, total_steps=self.config.episode)
+        self.policy_scheduler = CosineScheduleWithWarmup(self.policy_optim, warmup_steps=10, total_steps=self.config.episode)
+
         self.actor_target.load_state_dict(cast(OrderedDict[str, torch.Tensor], self.actor.state_dict()))
         self.critic_target.load_state_dict(cast(OrderedDict[str, torch.Tensor], self.critic.state_dict()))
     
@@ -226,6 +250,7 @@ class QFPIS(object):
         self.critic_optim.zero_grad()
         td_error.backward()
         self.critic_optim.step()
+        self.critic_scheduler.step()
         return predicted_q_value,td_error
     
     def actor_learn(self, state):
@@ -233,6 +258,7 @@ class QFPIS(object):
         self.actor_optim.zero_grad()
         loss.backward()
         self.actor_optim.step()
+        self.actor_scheduler.step()
         return loss
     
     def soft_update(self, net_target, net, tau):
@@ -274,6 +300,7 @@ class QFPIS(object):
         policy_loss = torch.cat(policy_loss).sum()
         policy_loss.backward()
         self.policy_optim.step()
+        self.policy_scheduler.step()
 
         del self.policy.rewards[:]
         del self.policy.saved_log_probs[:]
@@ -295,8 +322,7 @@ class QFPIS(object):
         ep_reward = 0
         wealth = self.config.wealth
         i = 0
-        plot_action = [[0.0]*10]
-        plot_action = np.array(plot_action)
+        plot_action = []
         while not done:
             observation = torch.tensor(observation, dtype=torch.float).unsqueeze(0).to(self.device)
             with torch.no_grad():
@@ -307,8 +333,7 @@ class QFPIS(object):
             action_policy = m.sample()
             actions.append(action_policy.cpu().numpy())
             #print(action)
-            if i == 9:
-                plot_action = action
+            plot_action.append(action)
             w1 = np.clip(action, 0, 1)  # np.array([cash_bias] + list(action))  # [w0, w1...]
             w1 /= (w1.sum() + eps)
             weights.append(w1)
@@ -321,6 +346,7 @@ class QFPIS(object):
         self.env =  envs(self.config)
         self.actor.train()
         self.policy.train()
+        plot_action = np.array(plot_action)
         return FPV, plot_action, actions
 
 

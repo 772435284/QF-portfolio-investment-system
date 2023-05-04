@@ -1,6 +1,6 @@
 # 通用参数
 model_name: 'A2C_QPL'
-mode: 'Train'
+mode: 'Test'
 use_cuda: True
 data_dir: 'forex_data'
 ddpg_model_dir: 'breakpoint/A2C_QPL'
@@ -72,7 +72,7 @@ gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
 use_qpl: True
 norm_method: 'z_score'
 norm_type: 'rolling'
-qpl_level: 1
+qpl_level: 4
 window_size: 3
 episode: 100
 max_step: 1000

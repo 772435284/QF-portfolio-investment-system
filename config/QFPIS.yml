@@ -2,7 +2,7 @@
 model_name: 'QFPIS'
 mode: 'Train'
 use_cuda: True
-data_dir: 'forex_data'
+data_dir: 'China_stock'
 ddpg_model_dir: 'breakpoint/QFPIS'
 pga_model_dir: 'breakpoint/QFPIS_pga'
 baseline_dir: 'breakpoint/baseline'
@@ -18,7 +18,7 @@ market_feature:
 - 'Low'
 - 'Close'
 agent_list:
-  - name: 'QFPIS_new'
+  - name: 'QFPIS_test'
     product_list:
       - 'AUDCAD'
       - 'AUDUSD'
@@ -29,7 +29,7 @@ agent_list:
       - 'NZDCHF'
       - 'NZDUSD'
       - 'USDCHF'
-  - name: 'QFPIS_fine_tune'
+  - name: 'QFPIS_test'
     product_list:
       - 'AAPL'
       - 'GE'
@@ -40,7 +40,7 @@ agent_list:
       - 'MSFT'
       - 'V'
       - 'XOM'
-  - name: 'QFPIS_fine_tune'
+  - name: 'QFPIS_test'
     product_list:
       - '000002.SZ'
       - '002035.SZ'
@@ -65,24 +65,24 @@ agent_list:
       - 'SHSE.600188'
       - 'SHSE.601225'
       - 'SHSE.601088'
-use_agents: 0
+use_agents: 2
 
 # 模型训练参数
 gm_train_strategy_id: 'add4d127-c418-11eb-9c4b-d481d7a7eca1'
 use_qpl: True
 norm_method: 'z_score'
 norm_type: 'rolling'
-qpl_level: 3
+qpl_level: 4
 window_size: 3
-episode: 100
+episode: 50
 max_step: 1000
 buffer_size: 100000
 batch_size: 64
 tau: 0.001
 gamma: 0.99
-actor_learning_rate: 0.0001
-critic_learning_rate: 0.001
-policy_learning_rate: 0.0001
+actor_learning_rate: 0.00001
+critic_learning_rate: 0.0001
+policy_learning_rate: 0.00001
 train_start_date: '2014-03-21'
 train_end_date: '2020-10-14'
 date_format: '%Y-%m-%d'
@@ -93,7 +93,7 @@ is_summary : True
 summary_path: 'train_summary'
 dataset: 'custom'
 verbose: 0
-tolerance: 10
+tolerance: 5
 
 # 模拟回测参数
 wealth: 10000

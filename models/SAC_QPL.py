@@ -225,7 +225,7 @@ class SAC_QPL:
         self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=config.critic_learning_rate)
 
         self.policy = Policy(product_num, window_size, self.num_features,self.action_size).to(self.device)
-        self.policy_optim = optim.Adam(self.policy.parameters(), lr=1e-4)
+        self.policy_optim = optim.Adam(self.policy.parameters(), lr=self.config.policy_learning_rate)
 
         os.makedirs(config.train_intermediate_dir, exist_ok=True)
         os.makedirs(config.baseline_dir, exist_ok=True)
