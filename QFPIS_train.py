@@ -54,10 +54,10 @@ elif torch.backends.mps.is_available():
 else:
     device = torch.device('cpu')
 
-if not os.path.exists("backtest_result/train_policy_actions"):
-      os.mkdir("backtest_result/train_policy_actions")
-if not os.path.exists("backtest_result/val_policy_actions"):
-      os.mkdir("backtest_result/val_policy_actions")    
+if not os.path.exists("./backtest_result/train_policy_actions"):
+      os.mkdir("./backtest_result/train_policy_actions",exists_ok=True)
+if not os.path.exists("./backtest_result/val_policy_actions"):
+      os.mkdir("./backtest_result/val_policy_actions",exists_ok=True)    
 
 # Set random seed 
 seed = config.random_seed
