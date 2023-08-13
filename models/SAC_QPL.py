@@ -245,7 +245,7 @@ class SAC_QPL:
             R = r + 0.95 * R # R: culumative rewards for t to T
             returns.insert(0, R) # Evaluate the R and keep original order
 
-        returns = torch.tensor(returns).to(self.device)
+        returns = torch.tensor(returns, dtype=torch.float32).to(self.device)
         # Normalized returns
         returns = (returns - returns.mean()) / (returns.std() + eps)
 

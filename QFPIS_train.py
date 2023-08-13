@@ -11,6 +11,11 @@ from models.QFPIS import QFPIS
 from models.A2C_QPL import A2C_QPL
 from models.PPO_QPL import PPO_QPL
 from models.SAC_QPL import SAC_QPL
+import warnings
+import os
+
+# 忽略特定的警告
+warnings.filterwarnings("ignore", category=UserWarning, module="torch", message=".*The operator 'aten::sgn.out'.*")
 
 # Add more models here
 MODEL_DICT = {
@@ -42,7 +47,17 @@ steps = config.max_step
 mode = config.mode
 action_dim = [product_num+1]
 actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim))
-device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
+if torch.cuda.is_available():
+    device = torch.device('cuda')
+elif torch.backends.mps.is_available():
+    device = torch.device('mps')
+else:
+    device = torch.device('cpu')
+
+if not os.path.exists("backtest_result/train_policy_actions"):
+      os.mkdir("backtest_result/train_policy_actions")
+if not os.path.exists("backtest_result/val_policy_actions"):
+      os.mkdir("backtest_result/val_policy_actions")    
 
 # Set random seed 
 seed = config.random_seed
